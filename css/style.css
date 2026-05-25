@@ -38,6 +38,7 @@ html {
   font-size: 16px;
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  overflow-x: hidden; /* prevent page-wide horizontal scroll */
 }
 
 body {
@@ -48,6 +49,8 @@ body {
   line-height: 1.6;
   overscroll-behavior: none;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden; /* prevent page-wide horizontal scroll */
+  width: 100%;
 }
 
 /* Background mesh gradient */
@@ -72,17 +75,21 @@ a  { color: var(--amber); text-decoration: none; }
 
 /* ---------- Layout ---------- */
 .container {
+  width: 100%;
   max-width: 480px;
   margin: 0 auto;
   padding: 0 20px;
   position: relative;
+  box-sizing: border-box;
 }
 
 .page {
+  width: 100%;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
   padding-bottom: env(safe-area-inset-bottom, 16px);
+  overflow-x: hidden;
 }
 
 /* ---------- Glass Card ---------- */
