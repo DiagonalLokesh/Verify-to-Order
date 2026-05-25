@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0d0d14">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Age verification for Verify to Order craft beer experience">
+  <title>Verify to Order (V2O) — Age Verification</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="assets/icons/icon-192.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="page">
+  <div class="container">
+
+    <!-- Header / Logo -->
+    <header class="app-header fade-in">
+      <div class="logo-mark">V2O</div>
+      <div class="brand-name">VERIFY TO ORDER</div>
+    </header>
+
+    <!-- Hero -->
+    <section class="fade-in delay-1" style="text-align:center; padding: 24px 0 20px;">
+      <h1 style="margin-bottom:12px;">
+        Unlock the Craft<br>Beer Experience
+      </h1>
+      <p>
+        To access our full menu — including craft beers, ales, and cocktails —
+        we need to confirm you are <strong style="color:var(--amber);">21 years or older</strong>
+        as required by law.
+      </p>
+    </section>
+
+    <!-- Age gate card -->
+    <div class="card fade-in delay-2" style="margin-bottom:16px;">
+      <p style="font-size:0.9rem; margin-bottom:16px; text-align:center; color:var(--text-secondary);">
+        Verify instantly using your Aadhaar QR Code
+      </p>
+
+      <a href="scan.html" class="btn btn-primary">
+        Verify My Age
+      </a>
+
+      <div class="divider mt-16 mb-16">or</div>
+
+      <!-- What you can use -->
+      <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px;">
+        <div style="font-size:0.875rem; color:var(--text-secondary); padding: 6px 0;">
+          <strong style="color:var(--text-primary);">mAadhaar App</strong> — show QR from the app
+        </div>
+        <div style="font-size:0.875rem; color:var(--text-secondary); padding: 6px 0;">
+          <strong style="color:var(--text-primary);">DigiLocker</strong> — use DigiLocker QR code
+        </div>
+        <div style="font-size:0.875rem; color:var(--text-secondary); padding: 6px 0;">
+          <strong style="color:var(--text-primary);">Photo / Screenshot</strong> — upload from gallery
+        </div>
+      </div>
+
+      <a href="menu-safe.html" class="btn btn-ghost" style="font-size:0.875rem; text-decoration:underline; color:var(--blue);">
+        Browse food &amp; mocktails without verifying →
+      </a>
+    </div>
+
+    <!-- Privacy assurance -->
+    <div class="card fade-in delay-3">
+      <p style="font-size:0.75rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--amber); margin-bottom:14px;">
+        Your Privacy is Protected
+      </p>
+      <ul class="privacy-list">
+        <li>
+          <span class="icon">✓</span>
+          <span>Verification runs <strong>entirely on your device</strong> — nothing is sent to any server</span>
+        </li>
+        <li>
+          <span class="icon">✓</span>
+          <span>We only check your <strong>date of birth</strong> — no name, ID number, or address is stored</span>
+        </li>
+        <li>
+          <span class="icon">✓</span>
+          <span>UIDAI digital signature ensures the QR code <strong>cannot be faked</strong></span>
+        </li>
+        <li>
+          <span class="icon">✓</span>
+          <span>Compliant with India's <strong>DPDP Act</strong> and GDPR principles</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Footer -->
+    <footer style="text-align:center; padding:24px 0 16px; color:var(--text-muted); font-size:0.78rem;">
+      Powered by UIDAI Offline Verification &nbsp;·&nbsp; OVSE Compliant
+    </footer>
+
+  </div><!-- /container -->
+</div><!-- /page -->
+
+<script>
+  // Register service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+</script>
+
+</body>
+</html>

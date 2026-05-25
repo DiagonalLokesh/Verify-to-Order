@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0d0d14">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Scan Aadhaar QR — Verify to Order (V2O)</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="assets/icons/icon-192.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="page">
+  <div class="container">
+
+    <!-- Back + Title -->
+    <header style="display:flex; align-items:center; gap:12px; padding:20px 0 16px;">
+      <a href="index.html" class="btn btn-ghost" style="width:auto; padding:8px 12px; font-size:1.2rem;">←</a>
+      <div>
+        <div class="brand-name" style="font-size:1rem;">V2O — Verify to Order</div>
+        <h2 style="font-size:1.1rem; font-family:var(--font-sans); font-weight:600; margin:0;">
+          Scan Aadhaar QR Code
+        </h2>
+      </div>
+    </header>
+
+    <!-- Status Banner -->
+    <div id="status-banner" class="status-banner info mb-12" role="alert" aria-live="polite">
+      <div class="spinner" id="status-spinner" style="display:none;"></div>
+      <span id="status-icon">·</span>
+      <span id="status-msg">Select an image containing your Aadhaar QR code</span>
+    </div>
+
+    <!-- ======== GALLERY / UPLOAD ======== -->
+
+    <!-- Upload zone (hidden once image is selected) -->
+    <div id="upload-zone" class="upload-zone mb-12"
+         ondragover="handleDragOver(event)" ondrop="handleDrop(event)" ondragleave="handleDragLeave(event)">
+      <input type="file" id="file-input" accept="image/*" onchange="handleFileSelect(event)"
+             aria-label="Choose an image containing the Aadhaar QR code">
+      <span class="upload-icon" style="font-size:2.5rem; color:var(--text-muted);">↑</span>
+      <p><strong>Tap to select an image</strong></p>
+      <p>or drag &amp; drop here</p>
+      <small>JPG · PNG · WebP · HEIC · Screenshot</small>
+    </div>
+
+    <!-- Works-with hint chips -->
+    <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; margin-bottom:16px;">
+      <span class="badge badge-amber" style="white-space:nowrap; flex-shrink:0;">Upload from Gallery</span>
+      <span class="badge badge-amber" style="white-space:nowrap; flex-shrink:0;">mAadhaar</span>
+      <span class="badge badge-amber" style="white-space:nowrap; flex-shrink:0;">DigiLocker</span>
+    </div>
+
+    <!-- Image preview (shown after selection) -->
+    <div id="img-preview-wrapper" class="img-preview-wrapper mb-12">
+      <img id="preview-img" alt="Selected image preview">
+      <button class="img-preview-clear" onclick="clearImage()" aria-label="Remove image">✕</button>
+    </div>
+
+    <button id="scan-gallery-btn" class="btn btn-primary mb-12" style="display:none;"
+            onclick="scanGalleryImage()">
+      Scan This Image
+    </button>
+
+    <!-- ======== MANUAL FALLBACK ======== -->
+    <div class="divider mt-20 mb-16">Can't scan? Try manual entry</div>
+
+    <div id="manual-toggle">
+      <button class="btn btn-secondary" onclick="showManualEntry()">
+        Enter 12-Digit Aadhaar Number
+      </button>
+    </div>
+
+    <div class="manual-entry card mt-12" id="manual-entry-panel">
+      <p style="font-size:0.875rem; margin-bottom:16px; color:var(--text-secondary);">
+        Enter the 12-digit number printed on your Aadhaar card.
+        Staff will assist with final verification.
+      </p>
+      <div class="input-group">
+        <input
+          type="tel"
+          inputmode="numeric"
+          maxlength="14"
+          class="input-field aadhaar-input"
+          id="aadhaar-number-input"
+          placeholder="XXXX  XXXX  XXXX"
+          oninput="formatAadhaarInput(this)"
+          autocomplete="off"
+        >
+      </div>
+      <button class="btn btn-primary mt-12" onclick="submitManualAadhaar()">
+        Verify with Agent
+      </button>
+      <p style="font-size:0.78rem; color:var(--text-muted); text-align:center; margin-top:12px;">
+        A staff member will complete the verification
+      </p>
+    </div>
+
+    <!-- Hidden canvas for QR processing -->
+    <canvas id="qr-canvas" style="display:none;" aria-hidden="true"></canvas>
+
+  </div><!-- /container -->
+</div><!-- /page -->
+
+<!-- Toast container -->
+<div id="toast-container" role="status" aria-live="polite" aria-atomic="false"></div>
+
+<!-- Third-party libraries -->
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+
+<!-- App modules -->
+<script src="js/aadhaar.js"></script>
+<script src="js/scanner.js"></script>
+
+<script>
+/* ============================================================
+   scan.html — Page Controller  |  Verify to Order (V2O)
+   Gallery upload + Manual entry only
+   ============================================================ */
+
+const LEGAL_AGE = 21;
+
+// ---- DOM refs ----
+const statusBanner   = document.getElementById('status-banner');
+const statusIcon     = document.getElementById('status-icon');
+const statusMsg      = document.getElementById('status-msg');
+const statusSpinner  = document.getElementById('status-spinner');
+const previewWrapper = document.getElementById('img-preview-wrapper');
+const previewImg     = document.getElementById('preview-img');
+const uploadZone     = document.getElementById('upload-zone');
+const scanGalleryBtn = document.getElementById('scan-gallery-btn');
+const manualPanel    = document.getElementById('manual-entry-panel');
+const manualToggle   = document.getElementById('manual-toggle');
+
+let selectedFile = null;
+
+// ---- Toast system ----
+function showToast(type, message, duration = 4000) {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  const icons = { info: 'ℹ', success: '✓', error: '✕', warning: '⚠' };
+  t.innerHTML = `<span class="toast-icon">${icons[type] || '·'}</span><span>${message}</span>`;
+  container.appendChild(t);
+  requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('visible')));
+  const tid = setTimeout(() => _dismissToast(t), duration);
+  t.addEventListener('click', () => { clearTimeout(tid); _dismissToast(t); });
+}
+
+function _dismissToast(t) {
+  t.classList.remove('visible');
+  setTimeout(() => { if (t.parentNode) t.remove(); }, 350);
+}
+
+// ---- Status banner (shown only during active processing) ----
+function setStatus(type, message, spinning = false) {
+  if (spinning) {
+    statusBanner.className = `status-banner ${type} visible`;
+    statusSpinner.style.display = 'block';
+    statusIcon.textContent = '';
+    statusMsg.textContent = message;
+  } else {
+    _hideStatus();
+    if (message) showToast(type, message);
+  }
+}
+
+function _hideStatus() {
+  statusBanner.classList.remove('visible');
+  statusSpinner.style.display = 'none';
+}
+
+// ---- Gallery ----
+function handleFileSelect(event) {
+  const file = event.target.files[0];
+  if (file) loadImageFile(file);
+}
+
+function handleDragOver(event) {
+  event.preventDefault();
+  uploadZone.classList.add('drag-over');
+}
+
+function handleDragLeave() {
+  uploadZone.classList.remove('drag-over');
+}
+
+function handleDrop(event) {
+  event.preventDefault();
+  handleDragLeave();
+  const file = event.dataTransfer.files[0];
+  if (file) loadImageFile(file);
+}
+
+function loadImageFile(file) {
+  if (!file.type.startsWith('image/')) {
+    showToast('error', 'Please select a valid image file (JPG, PNG, WebP, HEIC).');
+    return;
+  }
+  selectedFile = file;
+  previewImg.src = URL.createObjectURL(file);
+  previewWrapper.classList.add('visible');
+  uploadZone.style.display = 'none';
+  scanGalleryBtn.style.display = 'flex';
+}
+
+function clearImage() {
+  selectedFile = null;
+  previewImg.src = '';
+  previewWrapper.classList.remove('visible');
+  uploadZone.style.display = '';
+  scanGalleryBtn.style.display = 'none';
+  scanGalleryBtn.disabled = false;
+  document.getElementById('file-input').value = '';
+  _hideStatus();
+}
+
+async function scanGalleryImage() {
+  if (!selectedFile) return;
+  scanGalleryBtn.disabled = true;
+  setStatus('info', 'Scanning image for QR code…', true);
+
+  Scanner.init({
+    canvas:   document.getElementById('qr-canvas'),
+    onResult: handleParseResult,
+    onError:  (err, qrText) => {
+      scanGalleryBtn.disabled = false;
+      handleParseError(err, qrText);
+    },
+    onStatus: ({ type, message }) => {
+      const isProcessing = message.endsWith('…') || message.includes('verifying');
+      if (isProcessing) setStatus(type, message, true);
+    },
+  });
+
+  await Scanner.scanImage(selectedFile);
+}
+
+// ---- Manual entry ----
+function showManualEntry() {
+  manualToggle.style.display = 'none';
+  manualPanel.classList.add('visible');
+  document.getElementById('aadhaar-number-input').focus();
+}
+
+function formatAadhaarInput(input) {
+  let digits = input.value.replace(/\D/g, '').slice(0, 12);
+  input.value = digits.replace(/(\d{4})(?=\d)/g, '$1 ');
+}
+
+function submitManualAadhaar() {
+  const raw = document.getElementById('aadhaar-number-input').value.replace(/\s/g, '');
+  if (raw.length !== 12 || !/^\d{12}$/.test(raw)) {
+    showToast('error', 'Please enter a valid 12-digit Aadhaar number.');
+    return;
+  }
+  sessionStorage.setItem('hop_verify', JSON.stringify({
+    method: 'manual',
+    aadhaarLast4: raw.slice(-4),
+    timestamp: Date.now(),
+  }));
+  window.location.href = 'staff-verify.html';
+}
+
+// ---- Helper: extract first 12-digit sequence from raw text ----
+function _extract12Digits(text) {
+  if (!text) return null;
+  const m = text.match(/\b(\d{12})\b/) || text.match(/(\d{12})/);
+  return m ? m[1] : null;
+}
+
+function _formatAadhaarNum(num) {
+  return `${num.slice(0,4)} ${num.slice(4,8)} ${num.slice(8,12)}`;
+}
+
+// ---- Result handlers ----
+function handleParseResult(result) {
+  const eligibility = AadhaarParser.getEligibility(result, LEGAL_AGE);
+
+  // Store only non-PII data (no name/UID stored)
+  const sessionData = {
+    age: result.age,
+    gender: result.gender,
+    eligibility,
+    isVerified: result.isVerified,
+    timestamp: Date.now(),
+  };
+  sessionStorage.setItem('hop_verify', JSON.stringify(sessionData));
+
+  _hideStatus();
+
+  if (eligibility === 'adult') {
+    showToast('success', `Verified! Age ${result.age} — Welcome! Redirecting to full menu…`, 2500);
+    setTimeout(() => { window.location.href = 'menu-full.html'; }, 1800);
+  } else if (eligibility === 'minor') {
+    showToast('warning', `Age ${result.age} — Redirecting to food & mocktails menu.`, 2500);
+    setTimeout(() => { window.location.href = 'menu-safe.html?reason=minor'; }, 2000);
+  } else if (eligibility === 'borderline') {
+    showToast('warning', 'Age is borderline — please ask staff to assist.', 3500);
+    sessionData.borderline = true;
+    sessionStorage.setItem('hop_verify', JSON.stringify(sessionData));
+    setTimeout(() => { window.location.href = 'menu-safe.html?reason=borderline'; }, 2500);
+  } else {
+    showToast('error', 'Could not determine age from this QR code. Please ask staff for help.');
+    clearImage();
+  }
+}
+
+function handleParseError(err, originalQrText = '') {
+  _hideStatus();
+  scanGalleryBtn.disabled = false;
+
+  // QR encodes only a bare 12-digit Aadhaar number — no DOB available
+  if (err.message === 'AADHAAR_NUMBER_ONLY') {
+    const num = (originalQrText || '').replace(/\s/g, '');
+    const formatted = num.length === 12 ? _formatAadhaarNum(num) : num;
+    showToast('warning', `Aadhaar number detected: ${formatted} — Pre-filled below. Ask staff to complete verification.`, 6000);
+    showManualEntry();
+    const inp = document.getElementById('aadhaar-number-input');
+    if (inp && formatted) inp.value = formatted;
+    clearImage();
+    return;
+  }
+
+  // Map technical errors to user-friendly messages
+  let msg = err.message || 'Scan failed. Please try again.';
+  if      (msg.includes('payload too short'))       msg = 'QR code appears incomplete or damaged. Try a clearer photo.';
+  else if (msg.includes('Unrecognized QR'))          msg = 'Not an Aadhaar QR code. Please use the QR from your Aadhaar card.';
+  else if (msg.includes('Malformed'))                msg = 'QR code data is corrupted. Try again with better lighting.';
+  else if (msg.includes('decompress'))               msg = 'Could not read QR data. Try a clearer, well-lit photo.';
+  else if (msg.includes('Could not extract'))        msg = 'Date of birth not found in QR. Please ask staff for help.';
+  else if (msg.includes('No QR code found'))         msg = 'No QR code detected. Try a clearer photo with good lighting.';
+  else if (msg.includes('Could not load the image')) msg = 'Could not read this image. Please try a different file.';
+
+  showToast('error', msg);
+
+  // If a 12-digit number is buried in the raw QR text, pre-fill manual entry
+  const found12 = _extract12Digits(originalQrText);
+  if (found12) {
+    const formatted = _formatAadhaarNum(found12);
+    setTimeout(() => {
+      showToast('info', `Aadhaar number found: ${formatted} — Pre-filled in manual entry below.`, 6000);
+      showManualEntry();
+      const inp = document.getElementById('aadhaar-number-input');
+      if (inp) inp.value = formatted;
+    }, 700);
+  }
+
+  clearImage();
+}
+
+// ---- Init ----
+document.addEventListener('DOMContentLoaded', () => {
+  _hideStatus();
+});
+</script>
+
+</body>
+</html>

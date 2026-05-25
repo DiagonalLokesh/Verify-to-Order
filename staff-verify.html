@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0d0d14">
+  <title>Staff Verification — Verify to Order</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="assets/icons/icon-192.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="page">
+  <div class="container" style="padding-top:40px; text-align:center;">
+
+    <div class="result-icon warning" style="margin-bottom:24px; font-family:var(--font-display); font-size:1.5rem; font-weight:700; color:var(--amber);">ID</div>
+
+    <h2 style="margin-bottom:12px;">Staff Assistance Required</h2>
+
+    <p style="margin-bottom:24px;">
+      Your Aadhaar number has been noted. A staff member will verify your physical ID
+      or help you scan the QR code from your mAadhaar / DigiLocker app.
+    </p>
+
+    <div class="card" style="text-align:left; margin-bottom:24px;" id="session-info">
+      <!-- Populated by JS -->
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <a href="scan.html" class="btn btn-secondary">← Try Scanning Again</a>
+      <a href="menu-safe.html" class="btn btn-ghost">Go to Food &amp; Mocktails Menu</a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const data = JSON.parse(sessionStorage.getItem('hop_verify') || '{}');
+  const infoEl = document.getElementById('session-info');
+  const time   = data.timestamp ? new Date(data.timestamp).toLocaleTimeString() : '—';
+
+  infoEl.innerHTML = `
+    <p style="font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--amber);margin-bottom:10px;">
+      Verification Reference
+    </p>
+    <div style="display:flex;flex-direction:column;gap:8px;font-size:0.875rem;color:var(--text-secondary);">
+      <div style="display:flex;justify-content:space-between;">
+        <span>Method</span><strong style="color:var(--text-primary);">Manual Entry</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;">
+        <span>Aadhaar (last 4)</span><strong style="color:var(--text-primary);">XXXX XXXX ${data.aadhaarLast4 || '????'}</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;">
+        <span>Time</span><strong style="color:var(--text-primary);">${time}</strong>
+      </div>
+    </div>
+  `;
+</script>
+
+</body>
+</html>

@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0d0d14">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Full Menu — Verify to Order</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="assets/icons/icon-192.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="page">
+  <div class="container">
+
+    <!-- Menu Header -->
+    <header class="menu-header">
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <div>
+          <div class="brand-name" style="font-size:1rem;">Verify to Order</div>
+          <h2 style="font-size:1.2rem; font-family:var(--font-sans); font-weight:600; margin:0;">Craft Beer &amp; Menu</h2>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:0.75rem; color:var(--text-muted);" id="table-info">Table ·  —</div>
+          <div style="font-size:0.75rem; color:var(--text-muted);" id="time-info"></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Verified strip -->
+    <div class="verify-strip fade-in">
+      <span>✓</span>
+      <span id="verify-label">Age verified · Full menu unlocked</span>
+    </div>
+
+    <!-- Category Tabs -->
+    <div class="menu-tabs mb-16">
+      <button class="menu-tab active" onclick="showSection('beers')">Beers</button>
+      <button class="menu-tab" onclick="showSection('cocktails')">Cocktails</button>
+      <button class="menu-tab" onclick="showSection('mocktails')">Mocktails</button>
+      <button class="menu-tab" onclick="showSection('food')">Food</button>
+      <button class="menu-tab" onclick="showSection('desserts')">Desserts</button>
+    </div>
+
+    <!-- ===== BEERS ===== -->
+    <div id="section-beers" class="menu-section active">
+
+      <div class="section-label">Craft On Tap</div>
+
+      <div class="menu-item fade-in">
+        <span class="menu-item-emoji">🍺</span>
+        <div class="menu-item-info">
+          <h4>Bombay Blonde</h4>
+          <p>Crisp golden ale brewed with Mumbai rainwater. Light citrus finish.</p>
+        </div>
+        <div class="menu-item-meta">
+          <span class="price">₹320</span>
+          <span class="abv">4.8% ABV</span>
+          <span class="menu-item-tag">On Tap</span>
+        </div>
+      </div>
+
+      <div class="menu-item fade-in delay-1">
+        <span class="menu-item-emoji">🍺</span>
+        <div class="menu-item-info">
+          <h4>Monsoon IPA</h4>
+          <p>Bold Indian pale ale with tropical hops and a robust bitter finish.</p>
+        </div>
+        <div class="menu-item-meta">
+          <span class="price">₹380</span>
+          <span class="abv">6.2% ABV</span>
+          <span class="menu-item-tag">Best Seller</span>
+        </div>
+      </div>
+
+      <div class="menu-item fade-in delay-2">
+        <span class="menu-item-emoji">🍺</span>
+        <div class="menu-item-info">
+          <h4>Midnight Stout</h4>
+          <p>Dark and velvety stout with notes of coffee, dark chocolate, and caramel.</p>
+        </div>
+        <div class="menu-item-meta">
+          <span class="price">₹360</span>
+          <span class="abv">5.5% ABV</span>
+          <span class="menu-item-tag">On Tap</span>
+        </div>
+      </div>
+
+      <div class="menu-item fade-in delay-3">
+        <span class="menu-item-emoji">🍺</span>
+        <div class="menu-item-info">
+          <h4>Mango Wheat</h4>
+          <p>Hazy wheat beer with real Alphonso mango puree. A summer favourite.</p>
+        </div>
+        <div class="menu-item-meta">
+          <span class="price">₹350</span>
+          <span class="abv">4.2% ABV</span>
+          <span class="menu-item-tag">Seasonal</span>
+        </div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🍺</span>
+        <div class="menu-item-info">
+          <h4>Konkan Red Ale</h4>
+          <p>Malt-forward red ale with hints of toffee and toasted biscuit.</p>
+        </div>
+        <div class="menu-item-meta">
+          <span class="price">₹340</span>
+          <span class="abv">5.0% ABV</span>
+          <span class="menu-item-tag">On Tap</span>
+        </div>
+      </div>
+
+      <div class="section-label">Bottles &amp; Cans</div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🍾</span>
+        <div class="menu-item-info">
+          <h4>Belgian Tripel</h4>
+          <p>Strong golden ale with fruity esters and a warming spicy finish.</p>
+        </div>
+        <div class="menu-item-meta">
+          <span class="price">₹520</span>
+          <span class="abv">9.0% ABV</span>
+          <span class="menu-item-tag">Import</span>
+        </div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🍾</span>
+        <div class="menu-item-info">
+          <h4>Goan Lager</h4>
+          <p>Light, refreshing lager brewed with Goan spring water. Easy drinking.</p>
+        </div>
+        <div class="menu-item-meta">
+          <span class="price">₹280</span>
+          <span class="abv">4.5% ABV</span>
+          <span class="menu-item-tag">Bottle</span>
+        </div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🍺</span>
+        <div class="menu-item-info">
+          <h4>Hoppy Saison</h4>
+          <p>Farmhouse ale with floral hops, light spice, and a dry finish.</p>
+        </div>
+        <div class="menu-item-meta">
+          <span class="price">₹390</span>
+          <span class="abv">6.5% ABV</span>
+          <span class="menu-item-tag">Craft Can</span>
+        </div>
+      </div>
+
+    </div><!-- /beers -->
+
+    <!-- ===== COCKTAILS ===== -->
+    <div id="section-cocktails" class="menu-section">
+
+      <div class="section-label">Signature Cocktails</div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🍹</span>
+        <div class="menu-item-info">
+          <h4>Masala Old Fashioned</h4>
+          <p>Whisky, house-made chai bitters, jaggery syrup, orange peel.</p>
+        </div>
+        <div class="menu-item-meta">
+          <span class="price">₹580</span>
+          <span class="menu-item-tag">House Special</span>
+        </div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🍹</span>
+        <div class="menu-item-info">
+          <h4>Tamarind Margarita</h4>
+          <p>Tequila, fresh tamarind pulp, lime juice, chilli salt rim.</p>
+        </div>
+        <div class="menu-item-meta">
+          <span class="price">₹620</span>
+          <span class="menu-item-tag">Popular</span>
+        </div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🍹</span>
+        <div class="menu-item-info">
+          <h4>Kokum Gin Fizz</h4>
+          <p>Premium gin, kokum syrup, tonic water, fresh mint, cucumber.</p>
+        </div>
+        <div class="menu-item-meta">
+          <span class="price">₹560</span>
+          <span class="menu-item-tag">Refreshing</span>
+        </div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🍹</span>
+        <div class="menu-item-info">
+          <h4>Paan Mojito</h4>
+          <p>White rum, paan leaves, lime, mint, sugar, soda.</p>
+        </div>
+        <div class="menu-item-meta">
+          <span class="price">₹480</span>
+          <span class="menu-item-tag">Indian Twist</span>
+        </div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🥃</span>
+        <div class="menu-item-info">
+          <h4>Beer Sangria</h4>
+          <p>Red wine, house IPA, orange juice, seasonal fruits, cinnamon.</p>
+        </div>
+        <div class="menu-item-meta">
+          <span class="price">₹520</span>
+          <span class="menu-item-tag">Signature</span>
+        </div>
+      </div>
+
+      <div class="section-label">Spirits</div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🥃</span>
+        <div class="menu-item-info">
+          <h4>Single Malt Scotch</h4>
+          <p>Curated selection — ask your server for today's dram.</p>
+        </div>
+        <div class="menu-item-meta">
+          <span class="price">₹800+</span>
+          <span class="menu-item-tag">Premium</span>
+        </div>
+      </div>
+
+    </div><!-- /cocktails -->
+
+    <!-- ===== MOCKTAILS ===== -->
+    <div id="section-mocktails" class="menu-section">
+
+      <div class="section-label">Zero-Proof Cocktails</div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🥤</span>
+        <div class="menu-item-info">
+          <h4>Spiced Jaljeera</h4>
+          <p>Cumin water, mint, lemon, black salt, roasted spices. A classic reborn.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹180</span></div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🥤</span>
+        <div class="menu-item-info">
+          <h4>Watermelon Basil Cooler</h4>
+          <p>Fresh watermelon, basil, lime, ginger beer, sea salt.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹220</span></div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🥤</span>
+        <div class="menu-item-info">
+          <h4>Blue Lagoon Slushie</h4>
+          <p>Blue curacao syrup, lemon, soda, crushed ice. Eye-catching.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹200</span></div>
+      </div>
+
+    </div><!-- /mocktails -->
+
+    <!-- ===== FOOD ===== -->
+    <div id="section-food" class="menu-section">
+
+      <div class="section-label">Small Plates &amp; Sharing</div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🍗</span>
+        <div class="menu-item-info">
+          <h4>Beer-Battered Wings</h4>
+          <p>12 pcs crispy wings, tossed in house IPA glaze, blue cheese dip.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹480</span></div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🧀</span>
+        <div class="menu-item-info">
+          <h4>Loaded Nachos</h4>
+          <p>Corn tortilla chips, three-cheese sauce, jalapeños, salsa, guac.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹380</span></div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🌮</span>
+        <div class="menu-item-info">
+          <h4>Pulled Pork Tacos (3 pcs)</h4>
+          <p>Slow-smoked pork, cabbage slaw, chipotle mayo, pickled onions.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹520</span></div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🍕</span>
+        <div class="menu-item-info">
+          <h4>Craft Beer Flatbread</h4>
+          <p>Malted crust, caramelised onions, brie, fig jam, arugula.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹450</span></div>
+      </div>
+
+      <div class="section-label">Mains</div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🍔</span>
+        <div class="menu-item-info">
+          <h4>Brewery Burger</h4>
+          <p>Double smash patty, aged cheddar, IPA onions, house sauce, brioche bun.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹560</span></div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🥩</span>
+        <div class="menu-item-info">
+          <h4>Beer-Braised Short Rib</h4>
+          <p>Slow-cooked in stout, truffle mash, roasted carrots, herb oil.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹980</span></div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🐟</span>
+        <div class="menu-item-info">
+          <h4>Fish &amp; Chips</h4>
+          <p>Golden ale batter, flaky white fish, hand-cut fries, tartare sauce.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹680</span></div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🥗</span>
+        <div class="menu-item-info">
+          <h4>Halloumi Harvest Bowl</h4>
+          <p>Grilled halloumi, roasted veg, quinoa, tahini dressing. (V)</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹520</span></div>
+      </div>
+
+    </div><!-- /food -->
+
+    <!-- ===== DESSERTS ===== -->
+    <div id="section-desserts" class="menu-section">
+
+      <div class="section-label">Sweet Endings</div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🍮</span>
+        <div class="menu-item-info">
+          <h4>Stout Chocolate Fondant</h4>
+          <p>Warm dark chocolate cake with liquid stout centre, vanilla ice cream.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹320</span></div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🍦</span>
+        <div class="menu-item-info">
+          <h4>Beer Float</h4>
+          <p>A scoop of vanilla ice cream in your choice of craft ale. Classic.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹280</span></div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🍰</span>
+        <div class="menu-item-info">
+          <h4>Mango Panna Cotta</h4>
+          <p>Silky cream set with alphonso mango, saffron gel, pistachio crumble.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹280</span></div>
+      </div>
+
+    </div><!-- /desserts -->
+
+    <!-- Bottom spacer for order bar -->
+    <div style="height:90px;"></div>
+
+  </div><!-- /container -->
+</div><!-- /page -->
+
+<!-- Sticky order bar -->
+<div class="order-bar">
+  <div class="container">
+    <button class="btn btn-primary" onclick="placeOrder()">
+      Call Waiter / Place Order
+    </button>
+  </div>
+</div>
+
+<script>
+  // ---- Tab switching ----
+  function showSection(id) {
+    document.querySelectorAll('.menu-section').forEach((s) => s.classList.remove('active'));
+    document.querySelectorAll('.menu-tab').forEach((t) => t.classList.remove('active'));
+    document.getElementById('section-' + id).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  // ---- Session banner ----
+  const session = JSON.parse(sessionStorage.getItem('hop_verify') || '{}');
+  if (session.age) {
+    document.getElementById('verify-label').textContent =
+      `Age ${session.age} verified ✓ · Full menu unlocked`;
+  }
+
+  const timeEl = document.getElementById('time-info');
+  timeEl.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  // Read table number from URL param if present
+  const tableParam = new URLSearchParams(window.location.search).get('table');
+  if (tableParam) {
+    document.getElementById('table-info').textContent = `Table · ${tableParam}`;
+  }
+
+  // ---- Place order placeholder ----
+  function placeOrder() {
+    alert('A waiter has been notified! They will be with you shortly.');
+  }
+</script>
+
+</body>
+</html>

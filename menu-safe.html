@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0d0d14">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Mocktails &amp; Food — Verify to Order</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="assets/icons/icon-192.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="page">
+  <div class="container">
+
+    <!-- Header -->
+    <header class="menu-header">
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <div>
+          <div class="brand-name" style="font-size:1rem;">Verify to Order</div>
+          <h2 style="font-size:1.2rem; font-family:var(--font-sans); font-weight:600; margin:0;">
+            Mocktails &amp; Food
+          </h2>
+        </div>
+        <div style="text-align:right; font-size:0.75rem; color:var(--text-muted);">
+          <div id="time-info"></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Status strip -->
+    <div id="status-strip" class="fade-in"
+         style="display:flex;align-items:center;gap:10px;padding:10px 16px;
+                background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);
+                border-radius:var(--radius-md);margin-bottom:16px;font-size:0.85rem;color:#93c5fd;">
+      <span id="status-label">Enjoy our full selection of mocktails and food</span>
+    </div>
+
+    <!-- Verify CTA (shown when redirected for age) -->
+    <div id="verify-cta" class="card mb-16" style="display:none;">
+      <p style="font-size:0.875rem; color:var(--text-secondary); margin-bottom:16px;">
+        Are you 21+? Verify your age to access our craft beer and cocktail menu.
+      </p>
+      <a href="scan.html" class="btn btn-primary">
+        Verify Age with Aadhaar
+      </a>
+    </div>
+
+    <!-- Category Tabs -->
+    <div class="menu-tabs mb-16">
+      <button class="menu-tab active" onclick="showSection('mocktails')">Mocktails</button>
+      <button class="menu-tab" onclick="showSection('food')">Food</button>
+      <button class="menu-tab" onclick="showSection('desserts')">Desserts</button>
+      <button class="menu-tab" onclick="showSection('beverages')">Beverages</button>
+    </div>
+
+    <!-- ===== MOCKTAILS ===== -->
+    <div id="section-mocktails" class="menu-section active">
+
+      <div class="section-label">Zero-Proof Cocktails</div>
+
+      <div class="menu-item fade-in">
+        <span class="menu-item-emoji">🥤</span>
+        <div class="menu-item-info">
+          <h4>Spiced Jaljeera</h4>
+          <p>House-made cumin water, fresh mint, lime, black salt, roasted cumin powder.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹180</span></div>
+      </div>
+
+      <div class="menu-item fade-in delay-1">
+        <span class="menu-item-emoji">🥭</span>
+        <div class="menu-item-info">
+          <h4>Mango Lassi Fizz</h4>
+          <p>Alphonso mango, thick yogurt, cardamom, soda water, crushed ice.</p>
+        </div>
+        <div class="menu-item-meta">
+          <span class="price">₹200</span>
+          <span class="menu-item-tag">Popular</span>
+        </div>
+      </div>
+
+      <div class="menu-item fade-in delay-2">
+        <span class="menu-item-emoji">🍉</span>
+        <div class="menu-item-info">
+          <h4>Watermelon Basil Cooler</h4>
+          <p>Fresh watermelon, Thai basil, lime juice, ginger beer, Himalayan salt.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹220</span></div>
+      </div>
+
+      <div class="menu-item fade-in delay-3">
+        <span class="menu-item-emoji">🍋</span>
+        <div class="menu-item-info">
+          <h4>Virgin Mojito</h4>
+          <p>Fresh lime, mint, sugar syrup, soda, crushed ice. A timeless cooler.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹180</span></div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🫐</span>
+        <div class="menu-item-info">
+          <h4>Blue Lagoon Slushie</h4>
+          <p>Blue curacao syrup, lemon, soda, a tower of crushed ice. Instagram-worthy.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹200</span></div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🍵</span>
+        <div class="menu-item-info">
+          <h4>Masala Chai Cooler</h4>
+          <p>Cold-brewed chai, ginger, black pepper, honey, milk foam.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹180</span></div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🌺</span>
+        <div class="menu-item-info">
+          <h4>Hibiscus Rose Lemonade</h4>
+          <p>Hibiscus tea, rose water, lemon, honey, sparkling water.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹200</span></div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🥤</span>
+        <div class="menu-item-info">
+          <h4>Kokum Cooler</h4>
+          <p>Authentic Goan kokum, coconut water, fresh ginger, sugar. Super refreshing.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹180</span></div>
+      </div>
+
+    </div><!-- /mocktails -->
+
+    <!-- ===== FOOD ===== -->
+    <div id="section-food" class="menu-section">
+
+      <div class="section-label">Small Plates &amp; Sharing</div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🥜</span>
+        <div class="menu-item-info">
+          <h4>Masala Peanuts &amp; Chaat</h4>
+          <p>Crispy puffed rice, tamarind, green chutney, onions, sev. A classic!</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹160</span></div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🧀</span>
+        <div class="menu-item-info">
+          <h4>Loaded Nachos (V)</h4>
+          <p>Corn tortilla chips, three-cheese sauce, jalapeños, salsa, guacamole.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹380</span></div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🥟</span>
+        <div class="menu-item-info">
+          <h4>Veg Momos (8 pcs)</h4>
+          <p>Steamed or fried dumplings, ginger-soy dip, chilli oil.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹280</span></div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🍕</span>
+        <div class="menu-item-info">
+          <h4>Margherita Flatbread (V)</h4>
+          <p>Thin crust, San Marzano tomatoes, buffalo mozzarella, fresh basil.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹380</span></div>
+      </div>
+
+      <div class="section-label">Mains</div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🍔</span>
+        <div class="menu-item-info">
+          <h4>Veggie Smash Burger (V)</h4>
+          <p>Black bean &amp; beetroot patty, smoked cheddar, lettuce, chipotle sauce.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹480</span></div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🍗</span>
+        <div class="menu-item-info">
+          <h4>Tandoori Chicken Platter</h4>
+          <p>Half chicken marinated in spiced yogurt, mint chutney, onion salad, naan.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹620</span></div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🥗</span>
+        <div class="menu-item-info">
+          <h4>Halloumi Harvest Bowl (V)</h4>
+          <p>Grilled halloumi, roasted seasonal veg, quinoa, tahini dressing, dukkah.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹520</span></div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🍜</span>
+        <div class="menu-item-info">
+          <h4>Ramen Bowl</h4>
+          <p>Umami broth, noodles, soft-boiled egg, bok choy, mushrooms, nori. (Veg option available)</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹540</span></div>
+      </div>
+
+    </div><!-- /food -->
+
+    <!-- ===== DESSERTS ===== -->
+    <div id="section-desserts" class="menu-section">
+
+      <div class="section-label">Sweet Endings</div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🍮</span>
+        <div class="menu-item-info">
+          <h4>Chocolate Lava Cake</h4>
+          <p>Warm dark chocolate cake, molten centre, vanilla ice cream, berry coulis.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹320</span></div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🍰</span>
+        <div class="menu-item-info">
+          <h4>Mango Panna Cotta (V)</h4>
+          <p>Set cream, alphonso mango, saffron gel, pistachio crumble.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹280</span></div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🍦</span>
+        <div class="menu-item-info">
+          <h4>Artisanal Ice Cream (3 scoops)</h4>
+          <p>Ask your server for today's flavours. Always 3 rotating local flavours.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹220</span></div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🧆</span>
+        <div class="menu-item-info">
+          <h4>Gulab Jamun Sundae</h4>
+          <p>Warm gulab jamun over vanilla ice cream, rose syrup, crushed pistachios.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹260</span></div>
+      </div>
+
+    </div><!-- /desserts -->
+
+    <!-- ===== BEVERAGES ===== -->
+    <div id="section-beverages" class="menu-section">
+
+      <div class="section-label">Coffee</div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">☕</span>
+        <div class="menu-item-info">
+          <h4>Cold Brew Coffee</h4>
+          <p>18-hour cold extraction, served over ice. Bold, smooth, low-acid.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹200</span></div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🧋</span>
+        <div class="menu-item-info">
+          <h4>Dalgona Whip Coffee</h4>
+          <p>Whipped instant coffee, chilled milk, optional flavoured syrup.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹180</span></div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">☕</span>
+        <div class="menu-item-info">
+          <h4>Signature Cappuccino</h4>
+          <p>Double espresso, micro-foam milk, cocoa dust. Latte art on request.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹160</span></div>
+      </div>
+
+      <div class="section-label">Hot Drinks</div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🍵</span>
+        <div class="menu-item-info">
+          <h4>Masala Chai</h4>
+          <p>Traditional spiced tea, brewed strong with milk. Served in a kulhad.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹100</span></div>
+      </div>
+
+      <div class="menu-item">
+        <span class="menu-item-emoji">🍫</span>
+        <div class="menu-item-info">
+          <h4>Dark Hot Chocolate</h4>
+          <p>70% cacao, warm milk, chilli flakes, cinnamon. A warming classic.</p>
+        </div>
+        <div class="menu-item-meta"><span class="price">₹200</span></div>
+      </div>
+
+    </div><!-- /beverages -->
+
+    <!-- Bottom spacer -->
+    <div style="height:90px;"></div>
+
+  </div><!-- /container -->
+</div><!-- /page -->
+
+<!-- Sticky order bar -->
+<div class="order-bar">
+  <div class="container">
+    <button class="btn btn-primary" onclick="placeOrder()">
+      Call Waiter / Place Order
+    </button>
+  </div>
+</div>
+
+<script>
+  function showSection(id) {
+    document.querySelectorAll('.menu-section').forEach((s) => s.classList.remove('active'));
+    document.querySelectorAll('.menu-tab').forEach((t) => t.classList.remove('active'));
+    document.getElementById('section-' + id).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  function placeOrder() {
+    alert('A waiter has been notified! They will be with you shortly. 🙏');
+  }
+
+  // Set time
+  document.getElementById('time-info').textContent =
+    new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  // Personalise the status strip based on how user arrived here
+  const reason  = new URLSearchParams(window.location.search).get('reason');
+  const session = JSON.parse(sessionStorage.getItem('hop_verify') || '{}');
+
+  if (reason === 'minor' && session.age) {
+    document.getElementById('status-label').textContent =
+      `Age ${session.age} verified — showing age-appropriate menu`;
+    document.getElementById('status-strip').style.background = 'rgba(239,68,68,0.08)';
+    document.getElementById('status-strip').style.borderColor = 'rgba(239,68,68,0.2)';
+    document.getElementById('status-strip').style.color = '#fca5a5';
+    document.getElementById('status-strip').style.display = 'flex';
+  } else if (reason === 'borderline') {
+    document.getElementById('status-label').textContent =
+      'Age borderline — please ask staff for assistance with full menu access';
+    document.getElementById('verify-cta').style.display = 'block';
+  } else if (!reason) {
+    // Browsing without verification — show verify CTA
+    document.getElementById('verify-cta').style.display = 'block';
+  }
+</script>
+
+</body>
+</html>
