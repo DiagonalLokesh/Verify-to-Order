@@ -259,13 +259,15 @@ function _forceGalleryTab() {
 
 // ---- Camera ----
 async function _startCameraScanner() {
+  // Guard: don't start if we somehow got called while not on camera tab
+  if (activeTab !== 'camera') return;
+
   try {
     await Scanner.startCamera({
       video:      document.getElementById('camera-video'),
       canvas:     document.getElementById('qr-canvas'),
       onResult:   handleParseResult,
       onError:    (err, qrText) => {
-        // Stop camera and fall back to gallery on any scan error
         _forceGalleryTab();
         handleParseError(err, qrText);
       },
@@ -276,12 +278,15 @@ async function _startCameraScanner() {
       onGuidance: _updateGuidanceUI,
     });
   } catch (err) {
-    // Permission denied or camera unavailable — switch back to gallery
     _forceGalleryTab();
     if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
       showToast('error', 'Camera access required to scan Aadhaar card');
     } else if (err.name === 'NotFoundError') {
       showToast('error', 'No camera found on this device. Please use gallery upload.');
+    } else if (err.name === 'NotSupportedError' || err.name === 'SecurityError') {
+      showToast('error', 'Camera needs a secure connection (HTTPS). Use gallery upload instead.');
+    } else if (err.name === 'NotReadableError') {
+      showToast('error', 'Camera is in use by another app. Close it and try again.');
     } else {
       showToast('error', 'Could not start camera. Please use gallery upload instead.');
     }
@@ -497,12 +502,14 @@ function handleParseError(err, originalQrText = '') {
   clearImage();
 }
 
-// ---- Stop camera on page leave / visibility hidden ----
+// ---- Stop camera on page leave; restart when user returns to camera tab ----
 window.addEventListener('beforeunload', () => Scanner.stopCamera());
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden && activeTab === 'camera') {
-    // Pause camera stream when tab/app goes to background
-    Scanner.stopCamera();
+  if (document.hidden) {
+    if (activeTab === 'camera') Scanner.stopCamera();
+  } else {
+    // Page became visible again — restart camera if user is still on camera tab
+    if (activeTab === 'camera') _startCameraScanner();
   }
 });
 

@@ -48,7 +48,7 @@ const Scanner = (() => {
     }
   }
 
-  /** Parse a raw QR string through AadhaarParser and fire the appropriate callback */
+  /** Parse raw QR text and fire result/error callback */
   async function handleQRData(qrText) {
     emit('info', 'QR code detected — verifying…');
     try {
@@ -58,12 +58,10 @@ const Scanner = (() => {
         if (onErrorCb) onErrorCb(new Error('AADHAAR_NUMBER_ONLY'), qrText);
         return;
       }
-
       if (result.age === null) {
         if (onErrorCb) onErrorCb(new Error('Could not extract date of birth from this QR code.'), qrText);
         return;
       }
-
       if (onResultCb) onResultCb(result);
 
     } catch (err) {
@@ -72,14 +70,14 @@ const Scanner = (() => {
   }
 
   /* -------- Camera guidance heuristic -------- */
-  /* Only shows guidance when a card-like object (significant edge density) is detected */
+  /* Shows guidance only when a card-like object (significant edge density) is present */
   function _analyzeFrame(imageData, w, h) {
     const data = imageData.data;
     const cx   = Math.floor(w / 2);
     const cy   = Math.floor(h / 2);
     const rx   = Math.floor(w * 0.38);
     const ry   = Math.floor(h * 0.32);
-    const step = 4;
+    const step = 6; // larger step = faster on mobile
 
     let edgeCount  = 0;
     let brightness = 0;
@@ -107,47 +105,40 @@ const Scanner = (() => {
     const avgBrightness = brightness / samples;
     const edgeDensity   = edgeCount / samples;
 
-    // Edge density too low → no card-like object, suppress guidance
+    // Low edge density = no card present → suppress guidance
     if (edgeDensity < 0.04) return '';
 
     if (avgBrightness < 55) return 'Improve lighting';
     if (edgeDensity > 0.45) return 'Move farther';
     if (edgeDensity < 0.08) return 'Move closer';
-
-    // Detect motion blur: count high-contrast transitions in center row
-    let sharpTransitions = 0;
-    for (let y = cy - ry; y < cy + ry; y += 8) {
-      for (let x = cx - rx; x < cx + rx - 4; x += 4) {
-        const i  = (y * w + x) * 4;
-        const i1 = (y * w + (x + 4)) * 4;
-        if (i1 + 2 < data.length && Math.abs(data[i] - data[i1]) > 80) sharpTransitions++;
-      }
-    }
-    const sharpDensity = sharpTransitions / samples;
-
     if (edgeDensity < 0.12) return 'Center Aadhaar card';
-    if (sharpDensity < 0.02 && edgeDensity > 0.15) return 'Stay still';
 
-    return 'Center Aadhaar card';
+    return 'Stay still';
   }
 
-  /* -------- Camera scan loop (requestAnimationFrame) -------- */
+  /* -------- Camera scan loop -------- */
   function _scanLoop() {
     if (!cameraActive) return;
 
-    if (videoEl && videoEl.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA) {
+    frameCount++;
+
+    // Process every 3rd frame (~20fps equivalent) — reduces CPU load on mobile
+    if (frameCount % 3 === 0 && videoEl && videoEl.readyState >= 2) {
       const w = videoEl.videoWidth;
       const h = videoEl.videoHeight;
 
       if (w && h) {
-        canvasEl.width  = w;
-        canvasEl.height = h;
+        // Only resize canvas when video dimensions change
+        if (canvasEl.width !== w || canvasEl.height !== h) {
+          canvasEl.width  = w;
+          canvasEl.height = h;
+        }
         ctx.drawImage(videoEl, 0, 0, w, h);
 
         const imageData = ctx.getImageData(0, 0, w, h);
 
-        let code = jsQR(imageData.data, w, h, { inversionAttempts: 'dontInvert' });
-        if (!code) code = jsQR(imageData.data, w, h, { inversionAttempts: 'onlyInvert' });
+        // attemptBoth replaces calling jsQR twice — faster on mobile
+        const code = jsQR(imageData.data, w, h, { inversionAttempts: 'attemptBoth' });
 
         if (code?.data) {
           cameraActive = false;
@@ -158,9 +149,8 @@ const Scanner = (() => {
           return;
         }
 
-        // Update guidance every ~1 s (≈30 frames)
-        frameCount++;
-        if (frameCount % 30 === 0) {
+        // Guidance update every ~3 s (every 60 processed frames at ~20fps)
+        if (frameCount % 180 === 0) {
           emitGuidance(_analyzeFrame(imageData, w, h));
         }
       }
@@ -176,7 +166,6 @@ const Scanner = (() => {
 
   async function _loadAndStartOCR() {
     if (!cameraActive || tesseractWorker) return;
-
     try {
       if (!window.Tesseract) {
         await new Promise((res, rej) => {
@@ -198,18 +187,17 @@ const Scanner = (() => {
   async function _runOCR() {
     if (!cameraActive || !tesseractWorker || ocrRunning) return;
     ocrRunning = true;
-
     try {
-      if (videoEl?.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA) {
+      if (videoEl?.readyState >= 2) {
         const w = videoEl.videoWidth;
         const h = videoEl.videoHeight;
-        canvasEl.width  = w;
-        canvasEl.height = h;
+        if (canvasEl.width !== w || canvasEl.height !== h) {
+          canvasEl.width = w; canvasEl.height = h;
+        }
         ctx.drawImage(videoEl, 0, 0, w, h);
 
         const { data: { text } } = await tesseractWorker.recognize(canvasEl);
         const m = text.replace(/\s+/g, ' ').match(/\b(\d{4}[ -]?\d{4}[ -]?\d{4})\b/);
-
         if (m) {
           const num = m[1].replace(/[\s-]/g, '');
           if (cameraActive && /^\d{12}$/.test(num)) {
@@ -221,8 +209,7 @@ const Scanner = (() => {
           }
         }
       }
-    } catch { /* ignore individual OCR frame errors */ }
-
+    } catch { /* ignore per-frame OCR errors */ }
     ocrRunning = false;
     if (cameraActive) ocrTimer = setTimeout(_runOCR, 2500);
   }
@@ -232,10 +219,7 @@ const Scanner = (() => {
   /* ------------------------------------------------------------------ */
   return {
 
-    /**
-     * Initialize with DOM elements and callbacks (gallery mode).
-     * Call before scanImage().
-     */
+    /** Initialize for gallery mode. Call before scanImage(). */
     init({ canvas, onResult, onError, onStatus }) {
       canvasEl   = canvas;
       ctx        = canvas.getContext('2d', { willReadFrequently: true });
@@ -244,13 +228,9 @@ const Scanner = (() => {
       onStatusCb = onStatus;
     },
 
-    /**
-     * Scan a File or Blob for a QR code (gallery mode).
-     * Results/errors delivered via callbacks passed to init().
-     */
+    /** Scan a File/Blob for a QR code (gallery mode). */
     scanImage(file) {
       emit('info', 'Reading image…');
-
       return new Promise((resolve, reject) => {
         if (!file || !file.type.startsWith('image/')) {
           const err = new Error('Please select a valid image file (JPG, PNG, WebP).');
@@ -260,12 +240,9 @@ const Scanner = (() => {
         }
 
         const reader = new FileReader();
-
         reader.onload = (e) => {
           const img = new Image();
-
           img.onload = () => {
-            // Scale down very large images to speed up jsQR processing
             const MAX   = 1600;
             const scale = img.width > MAX || img.height > MAX
               ? MAX / Math.max(img.width, img.height) : 1;
@@ -277,7 +254,6 @@ const Scanner = (() => {
             const imageData = ctx.getImageData(0, 0, canvasEl.width, canvasEl.height);
             emit('info', 'Scanning for QR code…');
 
-            // Try normal then inverted — handles light-on-dark and dark-on-light QRs
             let code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
             if (!code) code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'onlyInvert' });
 
@@ -287,34 +263,29 @@ const Scanner = (() => {
               if (onErrorCb) onErrorCb(err, '');
               return reject(err);
             }
-
             emit('success', 'QR code found!');
             handleQRData(code.data).then(resolve).catch(reject);
           };
-
           img.onerror = () => {
             const err = new Error('Could not load the image. Please try a different file.');
             emit('error', err.message);
             if (onErrorCb) onErrorCb(err, '');
             reject(err);
           };
-
           img.src = e.target.result;
         };
-
         reader.onerror = () => {
           const err = new Error('Failed to read the file.');
           if (onErrorCb) onErrorCb(err, '');
           reject(err);
         };
-
         reader.readAsDataURL(file);
       });
     },
 
     /**
-     * Start live camera scanning (rear camera).
-     * Throws if camera permission is denied or unavailable.
+     * Start live camera scanning.
+     * Throws DOMException if camera permission is denied or unavailable.
      */
     async startCamera({ video, canvas, onResult, onError, onStatus, onGuidance }) {
       videoEl      = video;
@@ -325,45 +296,70 @@ const Scanner = (() => {
       onStatusCb   = onStatus;
       onGuidanceCb = onGuidance;
 
-      // Prefer rear camera
+      // navigator.mediaDevices is undefined on plain HTTP (non-localhost)
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw Object.assign(new Error('Camera requires a secure connection (HTTPS).'), { name: 'NotSupportedError' });
+      }
+
       cameraStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
+        video: {
+          facingMode: { ideal: 'environment' },
+          width:  { ideal: 1280 },
+          height: { ideal: 720 },
+        },
         audio: false,
       });
 
-      videoEl.srcObject = cameraStream;
-      await videoEl.play();
-
       // Probe native zoom capability
       zoomTrack = cameraStream.getVideoTracks()[0];
-      const caps = zoomTrack.getCapabilities?.();
-      if (caps?.zoom) {
-        zoomMin   = caps.zoom.min;
-        zoomMax   = caps.zoom.max;
-        zoomLevel = caps.zoom.min;
-      } else {
+      try {
+        const caps = zoomTrack.getCapabilities?.();
+        if (caps?.zoom) {
+          zoomMin   = caps.zoom.min;
+          zoomMax   = caps.zoom.max;
+          zoomLevel = caps.zoom.min;
+        } else {
+          zoomMin = 1; zoomMax = 3; zoomLevel = 1;
+        }
+      } catch {
         zoomMin = 1; zoomMax = 3; zoomLevel = 1;
       }
 
-      cameraActive = true;
-      frameCount   = 0;
+      cameraActive     = true;
+      frameCount       = 0;
       lastGuidanceText = '';
 
-      _scanLoop();
+      videoEl.srcObject = cameraStream;
 
-      // Trigger OCR fallback after 5 s of no QR found
-      _clearOcrTimer();
-      ocrTimer = setTimeout(() => _loadAndStartOCR(), 5000);
+      // Start scan loop only after the video is actually playing.
+      // DO NOT await play() — on iOS it races with autoplay and throws AbortError.
+      const onPlaying = () => {
+        if (!cameraActive) return;
+        _scanLoop();
+        _clearOcrTimer();
+        ocrTimer = setTimeout(() => _loadAndStartOCR(), 6000);
+      };
+      videoEl.addEventListener('playing', onPlaying, { once: true });
+
+      // Explicit play() call needed on some Android browsers even with autoplay attr.
+      // Errors here are non-fatal: autoplay handles it, AbortError is expected.
+      videoEl.play().catch(err => {
+        if (err.name === 'AbortError') return;
+        // Real error — clean up
+        videoEl.removeEventListener('playing', onPlaying);
+        cameraActive = false;
+        if (onErrorCb) onErrorCb(err, '');
+      });
     },
 
     /** Stop camera stream and release all resources. */
     stopCamera() {
       cameraActive = false;
-      if (scanLoopId)       { cancelAnimationFrame(scanLoopId); scanLoopId = null; }
+      if (scanLoopId)      { cancelAnimationFrame(scanLoopId); scanLoopId = null; }
       _clearOcrTimer();
-      if (cameraStream)     { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
-      if (videoEl)          { videoEl.srcObject = null; }
-      if (tesseractWorker)  { tesseractWorker.terminate(); tesseractWorker = null; }
+      if (cameraStream)    { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+      if (videoEl)         { videoEl.srcObject = null; videoEl = null; }
+      if (tesseractWorker) { tesseractWorker.terminate(); tesseractWorker = null; }
       ocrRunning       = false;
       frameCount       = 0;
       lastGuidanceText = '';
@@ -371,21 +367,21 @@ const Scanner = (() => {
     },
 
     /**
-     * Adjust zoom by delta (e.g. +0.5 or -0.5).
-     * Uses native camera zoom when available, falls back to CSS transform.
-     * Returns the new zoom level (for UI label update).
+     * Adjust zoom by delta (+0.5 or -0.5).
+     * Uses native camera zoom when supported, CSS transform otherwise.
+     * Returns display zoom value (always 1.0–3.0 range) for label.
      */
     adjustZoom(delta) {
       const caps = zoomTrack?.getCapabilities?.();
       if (caps?.zoom) {
-        const step = (caps.zoom.max - caps.zoom.min) / 6;
+        const step = Math.max(0.1, (caps.zoom.max - caps.zoom.min) / 6);
         zoomLevel = Math.max(caps.zoom.min, Math.min(caps.zoom.max, zoomLevel + delta * step));
         zoomTrack.applyConstraints({ advanced: [{ zoom: zoomLevel }] }).catch(() => {});
-        // Normalize to 1x–3x scale for label display
+        // Normalise to 1x–3x for display
         const range = caps.zoom.max - caps.zoom.min || 1;
         return 1 + ((zoomLevel - caps.zoom.min) / range) * 2;
       }
-      // CSS scale fallback — scales video element only, container stays fixed
+      // CSS scale fallback — only scales the video element, container stays fixed
       zoomLevel = Math.max(1, Math.min(3, zoomLevel + delta));
       if (videoEl) videoEl.style.transform = `scale(${zoomLevel})`;
       return zoomLevel;
@@ -393,7 +389,7 @@ const Scanner = (() => {
 
     getZoom() { return zoomLevel; },
 
-    /** No-op stub — kept so any lingering calls don't throw */
+    /** No-op stub — kept so lingering calls don't throw */
     stop() {},
   };
 
