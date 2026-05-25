@@ -616,13 +616,169 @@ a  { color: var(--amber); text-decoration: none; }
 .toast-error      { background: rgba(127,29,29,0.93);  color: #fca5a5; border: 1px solid rgba(239,68,68,0.4); }
 .toast-warning    { background: rgba(120,53,15,0.93);  color: #fde68a; border: 1px solid rgba(245,158,11,0.4); }
 
+/* ================================================================
+   CAMERA UI
+   ================================================================ */
+
+/* Tab switcher (Gallery / Camera) */
+.scan-tabs {
+  display: flex;
+  gap: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  padding: 4px;
+}
+
+.scan-tab {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.scan-tab.active {
+  background: var(--amber);
+  color: #0d0d14;
+  font-weight: 600;
+}
+
+/* Camera container — fixed size, no layout shift during scan */
+.camera-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3/4;
+  max-height: 420px;
+  background: #000;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+/* Video fills the container via object-fit; transform-origin kept center for CSS zoom */
+#camera-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transform-origin: center center;
+  transition: transform 0.2s ease;
+}
+
+/* Card alignment guide overlay (landscape ratio = Aadhaar card) */
+.camera-guide-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 78%;
+  aspect-ratio: 1.586 / 1;
+  border: 2px solid rgba(245,158,11,0.75);
+  border-radius: 10px;
+  pointer-events: none;
+  box-shadow: 0 0 0 9999px rgba(0,0,0,0.35);
+}
+
+/* Corner accent marks */
+.camera-guide-frame::before,
+.camera-guide-frame::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-color: var(--amber);
+  border-style: solid;
+}
+.camera-guide-frame::before {
+  top: -2px; left: -2px;
+  border-width: 3px 0 0 3px;
+  border-radius: 10px 0 0 0;
+}
+.camera-guide-frame::after {
+  bottom: -2px; right: -2px;
+  border-width: 0 3px 3px 0;
+  border-radius: 0 0 10px 0;
+}
+
+/* Guidance text shown only when card-like object detected */
+.camera-guidance {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.72);
+  color: #fff;
+  padding: 6px 18px;
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.camera-guidance.visible {
+  opacity: 1;
+}
+
+/* Zoom controls below camera container */
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.zoom-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 1.3rem;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.zoom-btn:hover  { background: var(--bg-card-hover); border-color: rgba(255,255,255,0.2); }
+.zoom-btn:active { transform: scale(0.9); }
+
+.zoom-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  min-width: 32px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
 /* Responsive tweaks for larger screens */
 @media (min-width: 640px) {
   .container { padding: 0 32px; }
-  .camera-wrapper { aspect-ratio: 4/3; }
+  .camera-wrapper { aspect-ratio: 4/3; max-height: none; }
 }
 
 @media (min-width: 1024px) {
   .page { justify-content: center; }
   .container { max-width: 520px; }
 }
+

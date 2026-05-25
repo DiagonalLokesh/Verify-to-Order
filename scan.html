@@ -36,36 +36,67 @@
       <span id="status-msg">Select an image containing your Aadhaar QR code</span>
     </div>
 
-    <!-- ======== GALLERY / UPLOAD ======== -->
-
-    <!-- Upload zone (hidden once image is selected) -->
-    <div id="upload-zone" class="upload-zone mb-12"
-         ondragover="handleDragOver(event)" ondrop="handleDrop(event)" ondragleave="handleDragLeave(event)">
-      <input type="file" id="file-input" accept="image/*" onchange="handleFileSelect(event)"
-             aria-label="Choose an image containing the Aadhaar QR code">
-      <span class="upload-icon" style="font-size:2.5rem; color:var(--text-muted);">↑</span>
-      <p><strong>Tap to select an image</strong></p>
-      <p>or drag &amp; drop here</p>
-      <small>JPG · PNG · WebP · HEIC · Screenshot</small>
+    <!-- ======== TAB SWITCHER ======== -->
+    <div class="scan-tabs mb-12" role="tablist" aria-label="Scan method">
+      <button id="tab-gallery" class="scan-tab active" role="tab" aria-selected="true"
+              onclick="switchTab('gallery')">Gallery</button>
+      <button id="tab-camera" class="scan-tab" role="tab" aria-selected="false"
+              onclick="switchTab('camera')">Camera</button>
     </div>
 
-    <!-- Works-with hint chips -->
-    <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; margin-bottom:16px;">
-      <span class="badge badge-amber" style="white-space:nowrap; flex-shrink:0;">Upload from Gallery</span>
-      <span class="badge badge-amber" style="white-space:nowrap; flex-shrink:0;">mAadhaar</span>
-      <span class="badge badge-amber" style="white-space:nowrap; flex-shrink:0;">DigiLocker</span>
-    </div>
+    <!-- ======== GALLERY PANEL ======== -->
+    <div id="gallery-panel">
 
-    <!-- Image preview (shown after selection) -->
-    <div id="img-preview-wrapper" class="img-preview-wrapper mb-12">
-      <img id="preview-img" alt="Selected image preview">
-      <button class="img-preview-clear" onclick="clearImage()" aria-label="Remove image">✕</button>
-    </div>
+      <!-- Upload zone (hidden once image is selected) -->
+      <div id="upload-zone" class="upload-zone mb-12"
+           ondragover="handleDragOver(event)" ondrop="handleDrop(event)" ondragleave="handleDragLeave(event)">
+        <input type="file" id="file-input" accept="image/*" onchange="handleFileSelect(event)"
+               aria-label="Choose an image containing the Aadhaar QR code">
+        <span class="upload-icon" style="font-size:2.5rem; color:var(--text-muted);">↑</span>
+        <p><strong>Tap to select an image</strong></p>
+        <p>or drag &amp; drop here</p>
+        <small>JPG · PNG · WebP · HEIC · Screenshot</small>
+      </div>
 
-    <button id="scan-gallery-btn" class="btn btn-primary mb-12" style="display:none;"
-            onclick="scanGalleryImage()">
-      Scan This Image
-    </button>
+      <!-- Works-with hint chips -->
+      <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; margin-bottom:16px;">
+        <span class="badge badge-amber" style="white-space:nowrap; flex-shrink:0;">Upload from Gallery</span>
+        <span class="badge badge-amber" style="white-space:nowrap; flex-shrink:0;">mAadhaar</span>
+        <span class="badge badge-amber" style="white-space:nowrap; flex-shrink:0;">DigiLocker</span>
+      </div>
+
+      <!-- Image preview (shown after selection) -->
+      <div id="img-preview-wrapper" class="img-preview-wrapper mb-12">
+        <img id="preview-img" alt="Selected image preview">
+        <button class="img-preview-clear" onclick="clearImage()" aria-label="Remove image">✕</button>
+      </div>
+
+      <button id="scan-gallery-btn" class="btn btn-primary mb-12" style="display:none;"
+              onclick="scanGalleryImage()">
+        Scan This Image
+      </button>
+
+    </div><!-- /gallery-panel -->
+
+    <!-- ======== CAMERA PANEL ======== -->
+    <div id="camera-panel" style="display:none;">
+
+      <div class="camera-wrapper mb-8">
+        <video id="camera-video" autoplay playsinline muted></video>
+        <!-- Card alignment guide frame -->
+        <div class="camera-guide-frame" aria-hidden="true"></div>
+        <!-- Contextual guidance text (only when card-like object detected) -->
+        <div id="camera-guidance" class="camera-guidance" aria-live="polite"></div>
+      </div>
+
+      <!-- Zoom controls: zoom camera stream only, container stays fixed -->
+      <div class="zoom-controls mb-12">
+        <button class="zoom-btn" onclick="handleZoom(-0.5)" aria-label="Zoom out">-</button>
+        <span id="zoom-label" class="zoom-label">1x</span>
+        <button class="zoom-btn" onclick="handleZoom(+0.5)" aria-label="Zoom in">+</button>
+      </div>
+
+    </div><!-- /camera-panel -->
 
     <!-- ======== MANUAL FALLBACK ======== -->
     <div class="divider mt-20 mb-16">Can't scan? Try manual entry</div>
@@ -121,7 +152,7 @@
 <script>
 /* ============================================================
    scan.html — Page Controller  |  Verify to Order (V2O)
-   Gallery upload + Manual entry only
+   Gallery upload + Live Camera + Manual entry
    ============================================================ */
 
 const LEGAL_AGE = 21;
@@ -139,6 +170,7 @@ const manualPanel    = document.getElementById('manual-entry-panel');
 const manualToggle   = document.getElementById('manual-toggle');
 
 let selectedFile = null;
+let activeTab    = 'gallery';
 
 // ---- Toast system ----
 function showToast(type, message, duration = 4000) {
@@ -175,6 +207,112 @@ function setStatus(type, message, spinning = false) {
 function _hideStatus() {
   statusBanner.classList.remove('visible');
   statusSpinner.style.display = 'none';
+}
+
+// ---- Tab switching ----
+function switchTab(tab) {
+  if (tab === activeTab) return;
+
+  const galleryPanel = document.getElementById('gallery-panel');
+  const cameraPanel  = document.getElementById('camera-panel');
+  const tabGallery   = document.getElementById('tab-gallery');
+  const tabCamera    = document.getElementById('tab-camera');
+
+  if (tab === 'camera') {
+    tabGallery.classList.remove('active');
+    tabGallery.setAttribute('aria-selected', 'false');
+    tabCamera.classList.add('active');
+    tabCamera.setAttribute('aria-selected', 'true');
+    galleryPanel.style.display = 'none';
+    cameraPanel.style.display  = 'block';
+    activeTab = 'camera';
+    _startCameraScanner();
+  } else {
+    tabCamera.classList.remove('active');
+    tabCamera.setAttribute('aria-selected', 'false');
+    tabGallery.classList.add('active');
+    tabGallery.setAttribute('aria-selected', 'true');
+    cameraPanel.style.display  = 'none';
+    galleryPanel.style.display = '';
+    activeTab = 'gallery';
+    Scanner.stopCamera();
+    _updateGuidanceUI('');
+    _resetZoomLabel();
+  }
+}
+
+// Switch tab UI to gallery without starting camera (used on error reset)
+function _forceGalleryTab() {
+  if (activeTab === 'camera') {
+    Scanner.stopCamera();
+    _updateGuidanceUI('');
+    _resetZoomLabel();
+  }
+  activeTab = 'gallery';
+  document.getElementById('tab-camera').classList.remove('active');
+  document.getElementById('tab-camera').setAttribute('aria-selected', 'false');
+  document.getElementById('tab-gallery').classList.add('active');
+  document.getElementById('tab-gallery').setAttribute('aria-selected', 'true');
+  document.getElementById('camera-panel').style.display  = 'none';
+  document.getElementById('gallery-panel').style.display = '';
+}
+
+// ---- Camera ----
+async function _startCameraScanner() {
+  try {
+    await Scanner.startCamera({
+      video:      document.getElementById('camera-video'),
+      canvas:     document.getElementById('qr-canvas'),
+      onResult:   handleParseResult,
+      onError:    (err, qrText) => {
+        // Stop camera and fall back to gallery on any scan error
+        _forceGalleryTab();
+        handleParseError(err, qrText);
+      },
+      onStatus:   ({ type, message }) => {
+        const isProcessing = message.endsWith('…') || message.includes('verifying');
+        if (isProcessing) setStatus(type, message, true);
+      },
+      onGuidance: _updateGuidanceUI,
+    });
+  } catch (err) {
+    // Permission denied or camera unavailable — switch back to gallery
+    _forceGalleryTab();
+    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+      showToast('error', 'Camera access required to scan Aadhaar card');
+    } else if (err.name === 'NotFoundError') {
+      showToast('error', 'No camera found on this device. Please use gallery upload.');
+    } else {
+      showToast('error', 'Could not start camera. Please use gallery upload instead.');
+    }
+  }
+}
+
+function _updateGuidanceUI(text) {
+  const el = document.getElementById('camera-guidance');
+  if (!el) return;
+  if (text) {
+    el.textContent = text;
+    el.classList.add('visible');
+  } else {
+    el.classList.remove('visible');
+  }
+}
+
+function handleZoom(delta) {
+  if (activeTab !== 'camera') return;
+  const zoom = Scanner.adjustZoom(delta);
+  _setZoomLabel(zoom);
+}
+
+function _setZoomLabel(zoom) {
+  const label = document.getElementById('zoom-label');
+  if (label) label.textContent = zoom.toFixed(1) + 'x';
+}
+
+function _resetZoomLabel() {
+  const label = document.getElementById('zoom-label');
+  if (label) label.textContent = '1x';
 }
 
 // ---- Gallery ----
@@ -282,6 +420,9 @@ function _formatAadhaarNum(num) {
 
 // ---- Result handlers ----
 function handleParseResult(result) {
+  // Stop camera before redirect
+  Scanner.stopCamera();
+
   const eligibility = AadhaarParser.getEligibility(result, LEGAL_AGE);
 
   // Store only non-PII data (no name/UID stored)
@@ -355,6 +496,15 @@ function handleParseError(err, originalQrText = '') {
 
   clearImage();
 }
+
+// ---- Stop camera on page leave / visibility hidden ----
+window.addEventListener('beforeunload', () => Scanner.stopCamera());
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && activeTab === 'camera') {
+    // Pause camera stream when tab/app goes to background
+    Scanner.stopCamera();
+  }
+});
 
 // ---- Init ----
 document.addEventListener('DOMContentLoaded', () => {
