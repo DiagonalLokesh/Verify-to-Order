@@ -38,7 +38,6 @@ html {
   font-size: 16px;
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
-  overflow-x: hidden; /* prevent page-wide horizontal scroll */
 }
 
 body {
@@ -49,8 +48,6 @@ body {
   line-height: 1.6;
   overscroll-behavior: none;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden; /* prevent page-wide horizontal scroll */
-  width: 100%;
 }
 
 /* Background mesh gradient */
@@ -75,21 +72,17 @@ a  { color: var(--amber); text-decoration: none; }
 
 /* ---------- Layout ---------- */
 .container {
-  width: 100%;
   max-width: 480px;
   margin: 0 auto;
   padding: 0 20px;
   position: relative;
-  box-sizing: border-box;
 }
 
 .page {
-  width: 100%;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
   padding-bottom: env(safe-area-inset-bottom, 16px);
-  overflow-x: hidden;
 }
 
 /* ---------- Glass Card ---------- */
@@ -282,18 +275,17 @@ a  { color: var(--amber); text-decoration: none; }
 .upload-zone p { font-size: 0.9rem; margin-bottom: 4px; color: var(--text-secondary); }
 .upload-zone small { color: var(--text-muted); font-size: 0.8rem; }
 
-/* Image preview — fixed-height box so it never changes size per image */
+/* Image preview */
 .img-preview-wrapper {
   border-radius: var(--radius-lg);
   overflow: hidden;
   position: relative;
-  height: 280px;
   display: none;
 }
 .img-preview-wrapper.visible { display: block; }
 #preview-img {
   width: 100%;
-  height: 100%;
+  max-height: 320px;
   object-fit: contain;
   background: #000;
   display: block;
@@ -624,238 +616,10 @@ a  { color: var(--amber); text-decoration: none; }
 .toast-error      { background: rgba(127,29,29,0.93);  color: #fca5a5; border: 1px solid rgba(239,68,68,0.4); }
 .toast-warning    { background: rgba(120,53,15,0.93);  color: #fde68a; border: 1px solid rgba(245,158,11,0.4); }
 
-/* ================================================================
-   SCAN PAGE — TAB SWITCHER
-   ================================================================ */
-
-.scan-tabs {
-  display: flex;
-  gap: 0;
-  padding: 4px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-full);
-  margin-bottom: 16px;
-}
-
-.scan-tab {
-  flex: 1;
-  padding: 10px 16px;
-  border: none;
-  border-radius: var(--radius-full);
-  background: transparent;
-  color: var(--text-secondary);
-  font-family: var(--font-sans);
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: var(--transition);
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-  white-space: nowrap;
-}
-
-.scan-tab.active {
-  background: var(--amber);
-  color: #0d0d14;
-  font-weight: 600;
-}
-
-/* ================================================================
-   CAMERA SCANNER PANEL
-   ================================================================ */
-
-/* Fixed-ratio viewport — never resizes based on content */
-.camera-wrapper {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  background: #000;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  border: 1px solid var(--border);
-  touch-action: none; /* needed for pinch gesture */
-}
-
-#camera-video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transform-origin: center center;
-  transition: transform 0.15s ease;
-}
-
-/* Semi-dark vignette so corners/frame are easier to see */
-.camera-vignette {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    ellipse 65% 65% at center,
-    transparent 38%,
-    rgba(0,0,0,0.5) 100%
-  );
-  pointer-events: none;
-  z-index: 1;
-}
-
-/* Scanning overlay layer */
-.camera-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  z-index: 2;
-}
-
-/* Alignment frame — center square guide */
-.scan-frame {
-  position: relative;
-  width: 62%;
-  aspect-ratio: 1 / 1;
-}
-
-/* Corner brackets */
-.scan-corner {
-  position: absolute;
-  width: 22px;
-  height: 22px;
-  border-style: solid;
-  border-color: var(--amber);
-  transition: border-color 0.25s ease;
-}
-.scan-corner.tl { top: 0; left: 0;  border-width: 3px 0 0 3px; border-radius: 5px 0 0 0; }
-.scan-corner.tr { top: 0; right: 0; border-width: 3px 3px 0 0; border-radius: 0 5px 0 0; }
-.scan-corner.bl { bottom: 0; left: 0;  border-width: 0 0 3px 3px; border-radius: 0 0 0 5px; }
-.scan-corner.br { bottom: 0; right: 0; border-width: 0 3px 3px 0; border-radius: 0 0 5px 0; }
-
-/* Corner states */
-.scan-frame.qr-good   .scan-corner { border-color: var(--green); }
-.scan-frame.qr-small  .scan-corner,
-.scan-frame.qr-large  .scan-corner { border-color: #60a5fa; }
-
-/* Animated scan line (only shown while camera is active) */
-.scan-line {
-  position: absolute;
-  left: 6px;
-  right: 6px;
-  height: 2px;
-  background: linear-gradient(90deg, transparent 0%, var(--amber) 40%, var(--amber) 60%, transparent 100%);
-  box-shadow: 0 0 10px rgba(245,158,11,0.7);
-  animation: scanMove 2s ease-in-out infinite;
-  opacity: 0.85;
-}
-
-@keyframes scanMove {
-  0%   { top: 8%; }
-  50%  { top: 88%; }
-  100% { top: 8%; }
-}
-
-/* Bottom message bar — default hint (no QR in frame) */
-.camera-hint {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 9px 14px;
-  background: rgba(0,0,0,0.62);
-  color: var(--text-secondary);
-  font-size: 0.82rem;
-  text-align: center;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  z-index: 3;
-}
-
-/* Bottom message bar — guidance (only when QR detected in frame) */
-.camera-guidance {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 9px 14px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  text-align: center;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  transition: background 0.2s ease, color 0.2s ease;
-  z-index: 3;
-}
-.camera-guidance.closer  { background: rgba(37,99,235,0.65);  color: #bfdbfe; }
-.camera-guidance.farther { background: rgba(37,99,235,0.65);  color: #bfdbfe; }
-.camera-guidance.good    { background: rgba(5,150,105,0.65);   color: #6ee7b7; }
-
-/* Pre-start overlay inside the camera box */
-.camera-start-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  background: rgba(0,0,0,0.55);
-  z-index: 4;
-  color: var(--text-secondary);
-  font-size: 0.875rem;
-  border-radius: var(--radius-lg);
-}
-
-.camera-start-icon {
-  font-size: 2.8rem;
-  opacity: 0.65;
-  line-height: 1;
-}
-
-/* Zoom control bar */
-.camera-controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  padding: 10px 0 2px;
-}
-
-.zoom-btn {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,0.08);
-  color: var(--text-primary);
-  font-size: 1.4rem;
-  font-weight: 400;
-  line-height: 1;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  -webkit-tap-highlight-color: transparent;
-  transition: var(--transition);
-  user-select: none;
-}
-.zoom-btn:hover  { background: rgba(255,255,255,0.15); }
-.zoom-btn:active { transform: scale(0.9); }
-.zoom-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
-
-.zoom-label {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  min-width: 46px;
-  text-align: center;
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-}
-
 /* Responsive tweaks for larger screens */
 @media (min-width: 640px) {
   .container { padding: 0 32px; }
-  .camera-wrapper { aspect-ratio: 4 / 3; }
+  .camera-wrapper { aspect-ratio: 4/3; }
 }
 
 @media (min-width: 1024px) {
