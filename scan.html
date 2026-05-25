@@ -33,39 +33,111 @@
     <div id="status-banner" class="status-banner info mb-12" role="alert" aria-live="polite">
       <div class="spinner" id="status-spinner" style="display:none;"></div>
       <span id="status-icon">·</span>
-      <span id="status-msg">Select an image containing your Aadhaar QR code</span>
+      <span id="status-msg">Select an image or use camera to scan your Aadhaar QR code</span>
     </div>
 
-    <!-- ======== GALLERY / UPLOAD ======== -->
-
-    <!-- Upload zone (hidden once image is selected) -->
-    <div id="upload-zone" class="upload-zone mb-12"
-         ondragover="handleDragOver(event)" ondrop="handleDrop(event)" ondragleave="handleDragLeave(event)">
-      <input type="file" id="file-input" accept="image/*" onchange="handleFileSelect(event)"
-             aria-label="Choose an image containing the Aadhaar QR code">
-      <span class="upload-icon" style="font-size:2.5rem; color:var(--text-muted);">↑</span>
-      <p><strong>Tap to select an image</strong></p>
-      <p>or drag &amp; drop here</p>
-      <small>JPG · PNG · WebP · HEIC · Screenshot</small>
+    <!-- ======== TAB SWITCHER ======== -->
+    <div class="scan-tabs" role="tablist">
+      <button class="scan-tab active" id="tab-gallery" role="tab" aria-selected="true"
+              onclick="switchTab('gallery')">🖼️ Upload Image</button>
+      <button class="scan-tab" id="tab-camera" role="tab" aria-selected="false"
+              onclick="switchTab('camera')">📷 Camera Scan</button>
     </div>
 
-    <!-- Works-with hint chips -->
-    <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; margin-bottom:16px;">
-      <span class="badge badge-amber" style="white-space:nowrap; flex-shrink:0;">Upload from Gallery</span>
-      <span class="badge badge-amber" style="white-space:nowrap; flex-shrink:0;">mAadhaar</span>
-      <span class="badge badge-amber" style="white-space:nowrap; flex-shrink:0;">DigiLocker</span>
-    </div>
+    <!-- ======== CAMERA PANEL ======== -->
+    <div id="camera-panel" role="tabpanel" style="display:none;">
 
-    <!-- Image preview (shown after selection) -->
-    <div id="img-preview-wrapper" class="img-preview-wrapper mb-12">
-      <img id="preview-img" alt="Selected image preview">
-      <button class="img-preview-clear" onclick="clearImage()" aria-label="Remove image">✕</button>
-    </div>
+      <!-- Fixed-ratio camera viewport -->
+      <div class="camera-wrapper mb-8" id="camera-wrapper">
 
-    <button id="scan-gallery-btn" class="btn btn-primary mb-12" style="display:none;"
-            onclick="scanGalleryImage()">
-      Scan This Image
-    </button>
+        <!-- Live video feed -->
+        <video id="camera-video" autoplay muted playsinline
+               aria-label="Live camera feed for QR scanning"></video>
+
+        <!-- Dark vignette overlay -->
+        <div class="camera-vignette"></div>
+
+        <!-- Scan frame + corners (shown once camera starts) -->
+        <div class="camera-overlay" id="camera-overlay" style="display:none;">
+          <div class="scan-frame" id="scan-frame">
+            <div class="scan-corner tl"></div>
+            <div class="scan-corner tr"></div>
+            <div class="scan-corner bl"></div>
+            <div class="scan-corner br"></div>
+            <div class="scan-line"></div>
+          </div>
+        </div>
+
+        <!-- Default hint — always visible, hidden when guidance takes over -->
+        <div class="camera-hint" id="camera-hint" style="display:none;">
+          Point camera at Aadhaar QR code
+        </div>
+
+        <!-- Guidance message — only appears when QR is detected in frame -->
+        <div class="camera-guidance" id="camera-guidance" style="display:none;"
+             aria-live="polite" aria-atomic="true">
+          <span id="guidance-text"></span>
+        </div>
+
+        <!-- Pre-start overlay inside the box -->
+        <div class="camera-start-overlay" id="camera-start-overlay">
+          <div class="camera-start-icon">📷</div>
+          <span>Tap below to start camera</span>
+        </div>
+
+      </div><!-- /camera-wrapper -->
+
+      <!-- Zoom controls (hidden until camera starts) -->
+      <div class="camera-controls" id="camera-controls" style="display:none;"
+           aria-label="Camera zoom controls">
+        <button class="zoom-btn" id="zoom-out" onclick="adjustZoom(-0.25)"
+                aria-label="Zoom out" title="Zoom out">−</button>
+        <span class="zoom-label" id="zoom-label" aria-live="polite">1.0×</span>
+        <button class="zoom-btn" id="zoom-in"  onclick="adjustZoom(0.25)"
+                aria-label="Zoom in" title="Zoom in">+</button>
+      </div>
+
+      <!-- Start / Stop buttons -->
+      <button id="camera-start-btn" class="btn btn-primary mt-12 mb-12"
+              onclick="startCamera()">Start Camera Scan</button>
+      <button id="camera-stop-btn" class="btn btn-secondary mt-8 mb-12"
+              onclick="stopCamera()" style="display:none;">Stop Camera</button>
+
+    </div><!-- /camera-panel -->
+
+    <!-- ======== GALLERY / UPLOAD PANEL ======== -->
+    <div id="gallery-panel">
+
+      <!-- Upload zone (hidden once image is selected) -->
+      <div id="upload-zone" class="upload-zone mb-12"
+           ondragover="handleDragOver(event)" ondrop="handleDrop(event)" ondragleave="handleDragLeave(event)">
+        <input type="file" id="file-input" accept="image/*" onchange="handleFileSelect(event)"
+               aria-label="Choose an image containing the Aadhaar QR code">
+        <span class="upload-icon" style="font-size:2.5rem; color:var(--text-muted);">↑</span>
+        <p><strong>Tap to select an image</strong></p>
+        <p>or drag &amp; drop here</p>
+        <small>JPG · PNG · WebP · HEIC · Screenshot</small>
+      </div>
+
+      <!-- Works-with hint chips -->
+      <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; margin-bottom:16px;">
+        <span class="badge badge-amber" style="white-space:nowrap; flex-shrink:0;">Upload from Gallery</span>
+        <span class="badge badge-amber" style="white-space:nowrap; flex-shrink:0;">mAadhaar</span>
+        <span class="badge badge-amber" style="white-space:nowrap; flex-shrink:0;">DigiLocker</span>
+      </div>
+
+      <!-- Image preview — fixed-height box, never resizes per image -->
+      <div id="img-preview-wrapper" class="img-preview-wrapper mb-12">
+        <img id="preview-img" alt="Selected image preview">
+        <button class="img-preview-clear" onclick="clearImage()" aria-label="Remove image">✕</button>
+      </div>
+
+      <button id="scan-gallery-btn" class="btn btn-primary mb-12" style="display:none;"
+              onclick="scanGalleryImage()">
+        Scan This Image
+      </button>
+
+    </div><!-- /gallery-panel -->
 
     <!-- ======== MANUAL FALLBACK ======== -->
     <div class="divider mt-20 mb-16">Can't scan? Try manual entry</div>
@@ -121,7 +193,7 @@
 <script>
 /* ============================================================
    scan.html — Page Controller  |  Verify to Order (V2O)
-   Gallery upload + Manual entry only
+   Camera scan + Gallery upload + Manual entry
    ============================================================ */
 
 const LEGAL_AGE = 21;
@@ -140,7 +212,298 @@ const manualToggle   = document.getElementById('manual-toggle');
 
 let selectedFile = null;
 
-// ---- Toast system ----
+/* ============================================================
+   TAB SWITCHER
+   ============================================================ */
+
+function switchTab(tab) {
+  const cameraPanel  = document.getElementById('camera-panel');
+  const galleryPanel = document.getElementById('gallery-panel');
+  const tabCamera    = document.getElementById('tab-camera');
+  const tabGallery   = document.getElementById('tab-gallery');
+
+  if (tab === 'camera') {
+    cameraPanel.style.display  = '';
+    galleryPanel.style.display = 'none';
+    tabCamera.classList.add('active');
+    tabCamera.setAttribute('aria-selected', 'true');
+    tabGallery.classList.remove('active');
+    tabGallery.setAttribute('aria-selected', 'false');
+  } else {
+    cameraPanel.style.display  = 'none';
+    galleryPanel.style.display = '';
+    tabGallery.classList.add('active');
+    tabGallery.setAttribute('aria-selected', 'true');
+    tabCamera.classList.remove('active');
+    tabCamera.setAttribute('aria-selected', 'false');
+    stopCamera(); // stop camera when switching away
+  }
+}
+
+/* ============================================================
+   CAMERA SCANNER
+   ============================================================ */
+
+let cameraStream     = null;
+let cameraScanning   = false;
+let camLoopTimer     = null;
+let qrCooldown       = false;    // debounce rapid re-reads of same QR
+let currentZoom      = 1.0;
+let minZoom          = 1.0;
+let maxZoom          = 3.0;
+let zoomTrack        = null;
+let nativeZoom       = false;    // true if browser supports MediaTrack zoom
+
+// Pinch state
+let pinchStartDist = 0;
+let pinchStartZoom = 1.0;
+
+const camVideo     = document.getElementById('camera-video');
+const camOverlay   = document.getElementById('camera-overlay');
+const scanFrame    = document.getElementById('scan-frame');
+const camHint      = document.getElementById('camera-hint');
+const camGuidance  = document.getElementById('camera-guidance');
+const guidanceText = document.getElementById('guidance-text');
+const zoomLabel    = document.getElementById('zoom-label');
+const camCanvas    = document.getElementById('qr-canvas');
+const camCtx       = camCanvas.getContext('2d', { willReadFrequently: true });
+
+async function startCamera() {
+  if (!navigator.mediaDevices?.getUserMedia) {
+    showToast('error', 'Camera API not supported in this browser. Please use the Upload tab.');
+    return;
+  }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: 'environment' }, // prefer rear camera
+        width:  { ideal: 1280 },
+        height: { ideal: 1280 },
+      },
+      audio: false,
+    });
+
+    cameraStream = stream;
+    camVideo.srcObject = stream;
+
+    zoomTrack = stream.getVideoTracks()[0];
+    const caps = zoomTrack.getCapabilities?.() || {};
+    if (caps.zoom) {
+      nativeZoom = true;
+      minZoom    = caps.zoom.min ?? 1.0;
+      maxZoom    = Math.min(caps.zoom.max ?? 3.0, 5.0);
+      currentZoom = minZoom;
+    } else {
+      nativeZoom = false;
+      minZoom = 1.0; maxZoom = 3.0; currentZoom = 1.0;
+    }
+
+    _updateZoomUI();
+
+    // Show active camera UI elements
+    document.getElementById('camera-start-overlay').style.display = 'none';
+    document.getElementById('camera-start-btn').style.display  = 'none';
+    document.getElementById('camera-stop-btn').style.display   = '';
+    document.getElementById('camera-controls').style.display   = '';
+    camOverlay.style.display = '';
+    camHint.style.display    = '';
+
+    camVideo.onloadedmetadata = () => {
+      camVideo.play();
+      cameraScanning = true;
+      _startScanLoop();
+    };
+
+  } catch (err) {
+    let msg = 'Could not access the camera.';
+    if (err.name === 'NotAllowedError')  msg = 'Camera permission denied. Please allow camera access in your browser settings.';
+    else if (err.name === 'NotFoundError') msg = 'No camera found on this device. Please use the Upload Image tab.';
+    showToast('error', msg);
+  }
+}
+
+function stopCamera() {
+  cameraScanning = false;
+  clearTimeout(camLoopTimer);
+  camLoopTimer = null;
+
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(t => t.stop());
+    cameraStream = null;
+  }
+  camVideo.srcObject = null;
+
+  // Reset camera UI to pre-start state
+  document.getElementById('camera-start-overlay').style.display = '';
+  document.getElementById('camera-start-btn').style.display  = '';
+  document.getElementById('camera-stop-btn').style.display   = 'none';
+  document.getElementById('camera-controls').style.display   = 'none';
+  camOverlay.style.display = 'none';
+  camHint.style.display    = 'none';
+  camGuidance.style.display = 'none';
+
+  scanFrame.className = 'scan-frame';
+  currentZoom = 1.0;
+  _updateZoomUI();
+  camVideo.style.transform = '';
+}
+
+/* Continuous scan loop — ~7 fps is plenty for QR detection */
+function _startScanLoop() {
+  const scan = () => {
+    if (!cameraScanning) return;
+
+    if (camVideo.readyState >= camVideo.HAVE_ENOUGH_DATA && camVideo.videoWidth > 0) {
+      camCanvas.width  = camVideo.videoWidth;
+      camCanvas.height = camVideo.videoHeight;
+      camCtx.drawImage(camVideo, 0, 0);
+
+      const imgData = camCtx.getImageData(0, 0, camCanvas.width, camCanvas.height);
+      let code = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'dontInvert' });
+      if (!code) code = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'onlyInvert' });
+
+      _updateCameraGuidance(code);
+
+      if (code?.data && !qrCooldown) {
+        qrCooldown = true;
+        _handleCameraQR(code.data);
+        return; // pause loop — resumes after QR handling
+      }
+    }
+
+    camLoopTimer = setTimeout(scan, 150);
+  };
+
+  scan();
+}
+
+/*
+  Update the in-frame guidance overlay.
+  - No QR in frame → show generic hint, hide guidance
+  - QR detected     → show near/far/hold-steady based on its size in the frame
+*/
+function _updateCameraGuidance(code) {
+  if (!code) {
+    camGuidance.style.display = 'none';
+    camHint.style.display = '';
+    scanFrame.className = 'scan-frame';
+    return;
+  }
+
+  const loc = code.location;
+  const xs  = [loc.topLeftCorner.x, loc.topRightCorner.x, loc.bottomLeftCorner.x, loc.bottomRightCorner.x];
+  const ys  = [loc.topLeftCorner.y, loc.topRightCorner.y, loc.bottomLeftCorner.y, loc.bottomRightCorner.y];
+  const qrSpan    = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys));
+  const frameSpan = Math.min(camCanvas.width, camCanvas.height);
+  const ratio     = qrSpan / frameSpan;
+
+  camHint.style.display    = 'none';
+  camGuidance.style.display = '';
+
+  if (ratio < 0.18) {
+    guidanceText.textContent     = '↔ Move closer to the QR code';
+    camGuidance.className        = 'camera-guidance closer';
+    scanFrame.className          = 'scan-frame qr-small';
+  } else if (ratio > 0.82) {
+    guidanceText.textContent     = '↕ Move back slightly';
+    camGuidance.className        = 'camera-guidance farther';
+    scanFrame.className          = 'scan-frame qr-large';
+  } else {
+    guidanceText.textContent     = '✓ Aadhaar QR detected — Hold steady!';
+    camGuidance.className        = 'camera-guidance good';
+    scanFrame.className          = 'scan-frame qr-good';
+  }
+}
+
+async function _handleCameraQR(qrText) {
+  cameraScanning = false;
+  clearTimeout(camLoopTimer);
+  setStatus('info', 'QR code detected — verifying…', true);
+
+  try {
+    const result = await AadhaarParser.parse(qrText);
+
+    if (result.format === 'aadhaar-number') {
+      const num       = qrText.replace(/\s/g, '');
+      const formatted = num.length === 12 ? _formatAadhaarNum(num) : num;
+      showToast('warning', `Aadhaar number detected: ${formatted} — Pre-filled below. Ask staff to verify.`, 6000);
+      stopCamera();
+      switchTab('gallery');
+      showManualEntry();
+      const inp = document.getElementById('aadhaar-number-input');
+      if (inp) inp.value = formatted;
+      qrCooldown = false;
+      _hideStatus();
+      return;
+    }
+
+    if (result.age === null) {
+      _hideStatus();
+      showToast('error', 'Could not extract date of birth from QR. Please try again.');
+      qrCooldown = false;
+      cameraScanning = true;
+      _startScanLoop();
+      return;
+    }
+
+    stopCamera();
+    handleParseResult(result);
+
+  } catch (err) {
+    _hideStatus();
+    const rawMsg = err.message || '';
+    let msg = 'Scan failed. Please try again.';
+    if      (rawMsg.includes('Unrecognized QR'))   msg = 'Not an Aadhaar QR code. Try again.';
+    else if (rawMsg.includes('decompress'))         msg = 'Could not read QR data. Ensure good lighting.';
+    else if (rawMsg.includes('Could not extract'))  msg = 'Date of birth not found in QR. Please ask staff.';
+    showToast('error', msg);
+    qrCooldown = false;
+    cameraScanning = true;
+    _startScanLoop();
+  }
+}
+
+/* ---- Zoom ---- */
+async function adjustZoom(delta) {
+  const target = Math.max(minZoom, Math.min(maxZoom, +(currentZoom + delta).toFixed(2)));
+  if (target === currentZoom) return;
+  currentZoom = target;
+  await _applyZoom(currentZoom);
+  _updateZoomUI();
+}
+
+async function _applyZoom(level) {
+  if (nativeZoom && zoomTrack) {
+    try {
+      await zoomTrack.applyConstraints({ advanced: [{ zoom: level }] });
+      return;
+    } catch (_) { /* fall through to CSS zoom */ }
+  }
+  // CSS scale fallback — magnifies the video element inside the fixed-ratio wrapper
+  camVideo.style.transform = level === 1.0 ? '' : `scale(${level})`;
+}
+
+function _updateZoomUI() {
+  if (zoomLabel) zoomLabel.textContent = currentZoom.toFixed(1) + '×';
+  const outBtn = document.getElementById('zoom-out');
+  const inBtn  = document.getElementById('zoom-in');
+  if (outBtn) outBtn.disabled = currentZoom <= minZoom;
+  if (inBtn)  inBtn.disabled  = currentZoom >= maxZoom;
+}
+
+/* ---- Pinch-to-zoom gesture ---- */
+function _pinchDist(e) {
+  const t = e.touches;
+  const dx = t[0].clientX - t[1].clientX;
+  const dy = t[0].clientY - t[1].clientY;
+  return Math.hypot(dx, dy);
+}
+
+/* ============================================================
+   TOAST & STATUS
+   ============================================================ */
+
 function showToast(type, message, duration = 4000) {
   const container = document.getElementById('toast-container');
   if (!container) return;
@@ -159,7 +522,6 @@ function _dismissToast(t) {
   setTimeout(() => { if (t.parentNode) t.remove(); }, 350);
 }
 
-// ---- Status banner (shown only during active processing) ----
 function setStatus(type, message, spinning = false) {
   if (spinning) {
     statusBanner.className = `status-banner ${type} visible`;
@@ -177,7 +539,10 @@ function _hideStatus() {
   statusSpinner.style.display = 'none';
 }
 
-// ---- Gallery ----
+/* ============================================================
+   GALLERY
+   ============================================================ */
+
 function handleFileSelect(event) {
   const file = event.target.files[0];
   if (file) loadImageFile(file);
@@ -228,7 +593,7 @@ async function scanGalleryImage() {
   setStatus('info', 'Scanning image for QR code…', true);
 
   Scanner.init({
-    canvas:   document.getElementById('qr-canvas'),
+    canvas:   camCanvas,
     onResult: handleParseResult,
     onError:  (err, qrText) => {
       scanGalleryBtn.disabled = false;
@@ -243,7 +608,10 @@ async function scanGalleryImage() {
   await Scanner.scanImage(selectedFile);
 }
 
-// ---- Manual entry ----
+/* ============================================================
+   MANUAL ENTRY
+   ============================================================ */
+
 function showManualEntry() {
   manualToggle.style.display = 'none';
   manualPanel.classList.add('visible');
@@ -269,7 +637,10 @@ function submitManualAadhaar() {
   window.location.href = 'staff-verify.html';
 }
 
-// ---- Helper: extract first 12-digit sequence from raw text ----
+/* ============================================================
+   RESULT HANDLERS
+   ============================================================ */
+
 function _extract12Digits(text) {
   if (!text) return null;
   const m = text.match(/\b(\d{12})\b/) || text.match(/(\d{12})/);
@@ -280,11 +651,9 @@ function _formatAadhaarNum(num) {
   return `${num.slice(0,4)} ${num.slice(4,8)} ${num.slice(8,12)}`;
 }
 
-// ---- Result handlers ----
 function handleParseResult(result) {
   const eligibility = AadhaarParser.getEligibility(result, LEGAL_AGE);
 
-  // Store only non-PII data (no name/UID stored)
   const sessionData = {
     age: result.age,
     gender: result.gender,
@@ -293,7 +662,6 @@ function handleParseResult(result) {
     timestamp: Date.now(),
   };
   sessionStorage.setItem('hop_verify', JSON.stringify(sessionData));
-
   _hideStatus();
 
   if (eligibility === 'adult') {
@@ -315,9 +683,8 @@ function handleParseResult(result) {
 
 function handleParseError(err, originalQrText = '') {
   _hideStatus();
-  scanGalleryBtn.disabled = false;
+  if (scanGalleryBtn) scanGalleryBtn.disabled = false;
 
-  // QR encodes only a bare 12-digit Aadhaar number — no DOB available
   if (err.message === 'AADHAAR_NUMBER_ONLY') {
     const num = (originalQrText || '').replace(/\s/g, '');
     const formatted = num.length === 12 ? _formatAadhaarNum(num) : num;
@@ -329,7 +696,6 @@ function handleParseError(err, originalQrText = '') {
     return;
   }
 
-  // Map technical errors to user-friendly messages
   let msg = err.message || 'Scan failed. Please try again.';
   if      (msg.includes('payload too short'))       msg = 'QR code appears incomplete or damaged. Try a clearer photo.';
   else if (msg.includes('Unrecognized QR'))          msg = 'Not an Aadhaar QR code. Please use the QR from your Aadhaar card.';
@@ -341,7 +707,6 @@ function handleParseError(err, originalQrText = '') {
 
   showToast('error', msg);
 
-  // If a 12-digit number is buried in the raw QR text, pre-fill manual entry
   const found12 = _extract12Digits(originalQrText);
   if (found12) {
     const formatted = _formatAadhaarNum(found12);
@@ -356,9 +721,47 @@ function handleParseError(err, originalQrText = '') {
   clearImage();
 }
 
-// ---- Init ----
+/* ============================================================
+   INIT
+   ============================================================ */
+
 document.addEventListener('DOMContentLoaded', () => {
   _hideStatus();
+
+  // Pinch-to-zoom on the camera wrapper
+  const wrapper = document.getElementById('camera-wrapper');
+  if (wrapper) {
+    wrapper.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2) {
+        pinchStartDist = _pinchDist(e);
+        pinchStartZoom = currentZoom;
+      }
+    }, { passive: true });
+
+    wrapper.addEventListener('touchmove', (e) => {
+      if (e.touches.length !== 2 || !cameraStream) return;
+      e.preventDefault();
+      const dist  = _pinchDist(e);
+      const scale = dist / pinchStartDist;
+      const target = Math.max(minZoom, Math.min(maxZoom, pinchStartZoom * scale));
+      // Snap to 0.1 steps to avoid micro-jitter
+      const snapped = Math.round(target * 10) / 10;
+      if (Math.abs(snapped - currentZoom) >= 0.1) {
+        currentZoom = snapped;
+        _applyZoom(currentZoom);
+        _updateZoomUI();
+      }
+    }, { passive: false });
+  }
+
+  // Warn if camera not available so user knows to use gallery tab
+  if (!navigator.mediaDevices?.getUserMedia) {
+    const startBtn = document.getElementById('camera-start-btn');
+    if (startBtn) {
+      startBtn.disabled = true;
+      startBtn.textContent = 'Camera not available — use Upload Image tab';
+    }
+  }
 });
 </script>
 
